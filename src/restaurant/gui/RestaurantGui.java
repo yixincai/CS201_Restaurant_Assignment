@@ -2,6 +2,14 @@ package restaurant.gui;
 
 import restaurant.CustomerAgent;
 
+import java.awt.Graphics;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.imageio.ImageIO;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -25,9 +33,12 @@ public class RestaurantGui extends JFrame implements ActionListener {
     
     /* infoPanel holds information about the clicked customer, if there is one*/
     private JPanel infoPanel;
+    private JPanel minePanel;
+    private JLabel mineLabel1; //part of infoPanel
+    private JLabel mineLabel2;
     private JLabel infoLabel; //part of infoPanel
     private JCheckBox stateCB;//part of infoLabel
-
+    private BufferedImage image;
     private Object currentPerson;/* Holds the agent that the info is about.
     								Seems like a hack */
 
@@ -56,7 +67,7 @@ public class RestaurantGui extends JFrame implements ActionListener {
         add(restPanel);
         
         // Now, setup the info panel
-        Dimension infoDim = new Dimension(WINDOWX, (int) (WINDOWY * .25));
+        Dimension infoDim = new Dimension(WINDOWX, (int) (WINDOWY * .15));
         infoPanel = new JPanel();
         infoPanel.setPreferredSize(infoDim);
         infoPanel.setMinimumSize(infoDim);
@@ -68,12 +79,34 @@ public class RestaurantGui extends JFrame implements ActionListener {
         stateCB.addActionListener(this);
 
         infoPanel.setLayout(new GridLayout(1, 2, 30, 0));
+//        infoPanel.setLayout(new FlowLayout(1, 30, 0));
         
         infoLabel = new JLabel(); 
         infoLabel.setText("<html><pre><i>Click Add to make customers</i></pre></html>");
         infoPanel.add(infoLabel);
         infoPanel.add(stateCB);
         add(infoPanel);
+        
+        minePanel = new JPanel();
+        minePanel.setPreferredSize(infoDim);
+        minePanel.setMinimumSize(infoDim);
+        minePanel.setMaximumSize(infoDim);
+        minePanel.setBorder(BorderFactory.createTitledBorder("Developer information"));
+
+        minePanel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        
+        mineLabel1 = new JLabel(); 
+        mineLabel1.setText("<html><pre><i>This is Yixin Cai</i></pre></html>");
+        minePanel.add(mineLabel1);
+        try {                
+            image = ImageIO.read(new File("C:/Users/THINK/Desktop/fighton.jpg"));
+        } catch (IOException ex) {
+              // handle exception...
+        }
+        mineLabel2 = new JLabel(new ImageIcon(image));
+        add(mineLabel2);
+        minePanel.add(mineLabel2);        
+        add(minePanel);
     }
     /**
      * updateInfoPanel() takes the given customer (or, for v3, Host) object and
