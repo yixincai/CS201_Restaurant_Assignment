@@ -5,17 +5,22 @@ import restaurant.CustomerAgent;
 import restaurant.HostAgent;
 
 import java.awt.*;
+import javax.swing.*;
 
-public class HostGui implements Gui {
+public class HostGui extends JPanel implements Gui {
 
     private HostAgent agent = null;
 
     private int xPos = -20, yPos = -20;//default waiter position
     private int xDestination = -20, yDestination = -20;//default start position
-
-    public static final int xTable = 200;
-    public static final int yTable = 250;
-
+    private int x_vary, y_vary;
+    public static int xTable = 200;
+    public static int yTable = 150;
+    public static int xGap = 20;
+    public static int yGap = 20;
+    
+    private ImageIcon i = new ImageIcon("image/host.jpg");
+    private Image image = i.getImage();
     public HostGui(HostAgent agent) {
         this.agent = agent;
     }
@@ -32,28 +37,45 @@ public class HostGui implements Gui {
             yPos--;
 
         if (xPos == xDestination && yPos == yDestination
-        		& (xDestination == xTable + 20) & (yDestination == yTable - 20)) {
+        		& (xDestination == xTable + xGap) & (yDestination == yTable - yGap)) {
            agent.msgAtTable();
         }
     }
 
     public void draw(Graphics2D g) {
-        g.setColor(Color.MAGENTA);
-        g.fillRect(xPos, yPos, 20, 20);
+        //g.setColor(Color.MAGENTA);
+        //g.fillRect(xPos, yPos, xGap, yGap);
+    	g.drawImage(image, xPos, yPos, xGap, yGap, this);
     }
 
     public boolean isPresent() {
         return true;
     }
 
-    public void DoBringToTable(CustomerAgent customer) {
-        xDestination = xTable + 20;
-        yDestination = yTable - 20;
+    public void DoBringToTable(CustomerAgent customer, int table_number) {
+    	
+		if (table_number == 1){
+			xTable = 200;
+		}
+		else if(table_number == 2){
+			xTable = 300;
+		}
+		else if (table_number == 3){
+			xTable = x_vary;
+			yTable = y_vary;
+		}
+    	xDestination = xTable + xGap;
+        yDestination = yTable - yGap;
     }
 
+	public void updateDestination(int x, int y, int w, int h){
+		x_vary = x;
+		y_vary = y;
+	}    
+    
     public void DoLeaveCustomer() {
-        xDestination = -20;
-        yDestination = -20;
+        xDestination = -xGap;
+        yDestination = -yGap;
     }
 
     public int getXPos() {
@@ -62,5 +84,15 @@ public class HostGui implements Gui {
 
     public int getYPos() {
         return yPos;
+    }
+    
+    public void pauseThread(){
+    	if (agent != null)
+    		agent.pauseThread();
+    }
+    
+    public void resumeThread(){
+    	if (agent != null)
+    		agent.resumeThread();
     }
 }

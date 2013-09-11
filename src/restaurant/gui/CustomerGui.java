@@ -5,7 +5,9 @@ import restaurant.HostAgent;
 
 import java.awt.*;
 
-public class CustomerGui implements Gui{
+import javax.swing.*;
+
+public class CustomerGui extends JPanel implements Gui{
 
 	private CustomerAgent agent = null;
 	private boolean isPresent = false;
@@ -15,19 +17,27 @@ public class CustomerGui implements Gui{
 	RestaurantGui gui;
 
 	private int xPos, yPos;
+	private int x_vary, y_vary;
 	private int xDestination, yDestination;
 	private enum Command {noCommand, GoToSeat, LeaveRestaurant};
 	private Command command=Command.noCommand;
 
 	public static final int xTable = 200;
-	public static final int yTable = 250;
-
+	public static final int yTable = 150;
+    private final int GAPX = 20;
+    private final int GAPY = 20;
+    private final int DESTINATIONX = -40;
+    private final int DESTINATIONY = -40;
+    
+    private ImageIcon i = new ImageIcon("image/customer.jpg");
+    private Image image = i.getImage();
+    
 	public CustomerGui(CustomerAgent c, RestaurantGui gui){ //HostAgent m) {
 		agent = c;
-		xPos = -40;
-		yPos = -40;
-		xDestination = -40;
-		yDestination = -40;
+		xPos = DESTINATIONX;
+		yPos = DESTINATIONY;
+		xDestination = DESTINATIONX;
+		yDestination = DESTINATIONY;
 		//maitreD = m;
 		this.gui = gui;
 	}
@@ -56,8 +66,9 @@ public class CustomerGui implements Gui{
 	}
 
 	public void draw(Graphics2D g) {
-		g.setColor(Color.GREEN);
-		g.fillRect(xPos, yPos, 20, 20);
+		//g.setColor(Color.GREEN);
+		//g.fillRect(xPos, yPos, GAPX, GAPY);
+    	g.drawImage(image, xPos, yPos, GAPX, GAPY, this);
 	}
 
 	public boolean isPresent() {
@@ -77,14 +88,40 @@ public class CustomerGui implements Gui{
 	}
 
 	public void DoGoToSeat(int seatnumber) {//later you will map seatnumber to table coordinates.
-		xDestination = xTable;
-		yDestination = yTable;
+		if (seatnumber == 1){
+			xDestination = 200;
+			yDestination = yTable;
+		}
+		else if(seatnumber == 2){
+			xDestination = 300;
+			yDestination = yTable;
+		}
+		else if (seatnumber == 3){
+			xDestination = x_vary;
+			yDestination = y_vary;
+		}
 		command = Command.GoToSeat;
 	}
 
+	public void updateDestination(int x, int y, int w, int h){
+		x_vary = x;
+		y_vary = y;
+		System.out.println(x + "" + y);
+	}
+	
 	public void DoExitRestaurant() {
-		xDestination = -40;
-		yDestination = -40;
+		xDestination = DESTINATIONX;
+		yDestination = DESTINATIONY;
 		command = Command.LeaveRestaurant;
 	}
+	
+    public void pauseThread(){
+    	if (agent != null)
+    		agent.pauseThread();
+    }
+
+    public void resumeThread(){
+    	if (agent != null)
+    		agent.resumeThread();
+    }
 }
