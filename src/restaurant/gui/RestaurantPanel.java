@@ -80,6 +80,9 @@ public class RestaurantPanel extends JPanel {
         }
     }
 
+    public void addPerson1(String name) {
+    	customerPanel.addPerson(name);
+    }
     /**
      * Adds a customer or waiter to the appropriate list
      *

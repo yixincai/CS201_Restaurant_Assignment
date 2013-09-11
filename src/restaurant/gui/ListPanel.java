@@ -4,6 +4,7 @@ import restaurant.CustomerAgent;
 import restaurant.HostAgent;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.util.List;
@@ -40,7 +41,7 @@ public class ListPanel extends JPanel implements ActionListener {
 
         addPersonB.addActionListener(this);
         add(addPersonB);
-
+        
         view.setLayout(new BoxLayout((Container) view, BoxLayout.Y_AXIS));
         pane.setViewportView(view);
         add(pane);
