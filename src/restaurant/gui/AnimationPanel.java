@@ -9,14 +9,18 @@ import java.util.List;
 import java.util.ArrayList;
 
 public class AnimationPanel extends JPanel implements ActionListener {
-
+    private final int TABLEX = 200;
+    private final int TABLEY = 150;
+    private final int GAPX = 50;
+    private final int GAPY = 50;
     private final int WINDOWX = 450;
     private final int WINDOWY = 350;
     private Image bufferImage;
     private Dimension bufferSize;
-
+    private boolean table3_added = false;
     private List<Gui> guis = new ArrayList<Gui>();
 
+    private int width, height, x_pos, y_pos;
     public AnimationPanel() {
     	setSize(WINDOWX, WINDOWY);
         setVisible(true);
@@ -30,6 +34,17 @@ public class AnimationPanel extends JPanel implements ActionListener {
 	public void actionPerformed(ActionEvent e) {
 		repaint();  //Will have paintComponent called
 	}
+	
+	public void updateTable(int x, int y, int w, int h){
+		width = w;
+		height = h;
+		x_pos = x;
+		y_pos = y;
+		table3_added = true;
+        for(Gui gui : guis) {
+            gui.updateDestination(x, y, w, h);
+        }
+	}
 
     public void paintComponent(Graphics g) {
         Graphics2D g2 = (Graphics2D)g;
@@ -40,9 +55,11 @@ public class AnimationPanel extends JPanel implements ActionListener {
 
         //Here is the table
         g2.setColor(Color.ORANGE);
-        g2.fillRect(200, 250, 50, 50);//200 and 250 need to be table params
+        g2.fillRect(TABLEX, TABLEY, GAPX, GAPY);//200 and 250 need to be table params
 
-
+        g2.fillRect(TABLEX+100, TABLEY, GAPX, GAPY);
+        if (table3_added)
+        	g2.fillRect(x_pos, y_pos, width, height);        
         for(Gui gui : guis) {
             if (gui.isPresent()) {
                 gui.updatePosition();
@@ -56,6 +73,20 @@ public class AnimationPanel extends JPanel implements ActionListener {
         }
     }
 
+    public void pause(){
+    	for (Gui gui : guis){
+    		System.out.println("pausing");
+    		gui.pauseThread();
+    	}
+    }
+
+    public void resume(){
+    	for (Gui gui : guis){
+    		System.out.println("resuming");
+    		gui.resumeThread();
+    	}
+    }
+    
     public void addGui(CustomerGui gui) {
         guis.add(gui);
     }

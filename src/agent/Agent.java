@@ -92,7 +92,21 @@ public abstract class Agent {
             agentThread = null;
         }
     }
+    
+    public void pauseThread(){
+        if (agentThread != null) {
+        	System.out.println("real pausing");
+            agentThread.pauseAgent();
+            agentThread = null;
+        }	
+    }
 
+    public void resumeThread(){
+        if (agentThread == null) {
+            agentThread = new AgentThread(getName());
+            agentThread.start();
+        }
+    }
     /**
      * Agent scheduler thread, calls respondToStateChange() whenever a state
      * change has been signalled.
@@ -103,7 +117,11 @@ public abstract class Agent {
         private AgentThread(String name) {
             super(name);
         }
-
+        
+        public void pauseAgent() {
+            goOn = false;
+        }
+        
         public void run() {
             goOn = true;
 
