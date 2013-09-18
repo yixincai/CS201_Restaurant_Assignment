@@ -89,6 +89,7 @@ public class WaiterAgent extends Agent {
 	 * Scheduler.  Determine what action is called for, and do it.
 	 */
 	protected boolean pickAndExecuteAnAction() {
+		
 		for (MyCustomer customer : customers) {
 			if (customer.state == MyCustomer.CustomerState.waiting) {
 				seatCustomer(customer);
@@ -103,7 +104,6 @@ public class WaiterAgent extends Agent {
 		}
 		for (MyCustomer customer : customers) {
 			if (customer.state == MyCustomer.CustomerState.orderGiven) {
-				System.out.println("process order");
 				processOrder(customer);
 				return true;
 			}
@@ -143,35 +143,43 @@ public class WaiterAgent extends Agent {
 	}
 
 	private void processOrder(MyCustomer customer){
-		System.out.println("Process order");
+		Do("Process order");
 		customer.state = MyCustomer.CustomerState.orderProcessed;
 		cook.msgHereIsTheOrder(this, customer.choice, customer.tableNumber);
+		DoGoToCook();
 	}
 	
 	private void giveOrderToCustomer(MyCustomer customer){
+		Do("Give order to customer");
 		customer.state = MyCustomer.CustomerState.eating;
 		customer.c.msgHereIsYourFood(customer.choice);
 		DoGiveFoodToCustomer(customer.c, customer.tableNumber);
 	}
 
 	private void clearCustomer(MyCustomer customer){
+		Do("Clear customer");
 		host.msgTableIsFree(customer.c, customer.tableNumber);
 		customers.remove(customer);
 	}
 	
 	private void DoSeatCustomer(CustomerAgent customer, int table){
 		print("Seating " + customer + " at " + table);
-		waiterGui.DoBringToTable(customer, table);
+		waiterGui.DoGoToTable(customer, table);
 	}
 	
 	private void DoGoToCustomer(CustomerAgent customer, int table){
 		print("Seating " + customer + " at " + table);
-		waiterGui.DoBringToTable(customer, table);
+		waiterGui.DoGoToTable(customer, table);
+	}
+	
+	private void DoGoToCook(){
+		print("Going to cook");
+		waiterGui.DoGoToCook();
 	}
 	
 	private void DoGiveFoodToCustomer(CustomerAgent customer, int table){
 		print("Seating " + customer + " at " + table);
-		waiterGui.DoBringToTable(customer, table);
+		waiterGui.DoGoToTable(customer, table);
 	}
 	
 	//utilities

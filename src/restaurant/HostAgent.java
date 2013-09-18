@@ -62,8 +62,10 @@ public class HostAgent extends Agent {
 	// Messages
 
 	public void msgIWantFood(CustomerAgent cust) {
+		
 		waitingCustomers.add(cust);
 		stateChanged();
+		Do("Got customer " + waitingCustomers.size());
 	}
 
 	public void msgTableIsFree(CustomerAgent cust, int tablenumber) {
@@ -103,15 +105,17 @@ public class HostAgent extends Agent {
 	// Actions
 
 	private void seatCustomer(CustomerAgent customer, Table table) {
+		Do("Telling waiter" + waiters.get(0) + "to seat customer");
 		waiters.get(0).msgSitAtTable(customer, table.tableNumber);
-		try {
+		/*try {
 			atTable.acquire();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}*/
 		table.setOccupant(customer);
 		waitingCustomers.remove(customer);
+		Do("Schedule finished");
 	}
 
 	//utilities

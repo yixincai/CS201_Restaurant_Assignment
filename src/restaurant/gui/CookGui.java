@@ -23,9 +23,7 @@ public class CookGui implements Gui{
 	
     private HostAgent agent = null;
 
-    private int xPos = 300, yPos = 50;//default waiter position
-
-    private int x_vary, y_vary;
+    private int xPos = 300, yPos = 250;//default waiter position
     public static int xTable = 200;
     public static int yTable = 150;
     public static int xGap = 20;
@@ -46,8 +44,6 @@ public class CookGui implements Gui{
     }
 
 	public void updateDestination(int x, int y, int w, int h){
-		x_vary = x;
-		y_vary = y;
 	}
 
     public int getXPos() {

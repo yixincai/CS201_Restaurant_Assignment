@@ -9,7 +9,7 @@ import java.util.*;
 import java.util.concurrent.Semaphore;
 
 public class CookAgent extends Agent{
-
+    private String name = "TheBestCook";
 	public List<Order> orders = new ArrayList<Order>();
 	Timer timer = new Timer();
 	public CookGui cookGui = null;
@@ -22,9 +22,14 @@ public class CookAgent extends Agent{
 		cookGui = gui;
 	}
 	
+	public String getName() {
+		return name;
+	}
+	
 	// Messages
 	public void msgHereIsTheOrder(WaiterAgent w, String choice, int table) {
-		orders.add(new Order(w,choice,table));
+		Do("Order received");
+		orders.add(new Order(w,choice,table,Order.OrderState.NotCooked));
 		stateChanged();
 	}
 
@@ -57,6 +62,7 @@ public class CookAgent extends Agent{
 
 	private void cookOrder(final Order order) {
 		DoCooking(order.choice);
+		order.state = Order.OrderState.Cooking;
 		timer.schedule(new TimerTask() {
 			public void run() {
 				print("Cooking food");
@@ -86,13 +92,14 @@ public class CookAgent extends Agent{
 		int tableNumber;
 		WaiterAgent w;
 		public enum OrderState
-		{None, NotCooked, Cooked, Delivered};
+		{None, NotCooked, Cooking, Cooked, Delivered};
 		private OrderState state = OrderState.None;
 		
-		Order(WaiterAgent w, String choice, int tableNumber) {
+		Order(WaiterAgent w, String choice, int tableNumber, OrderState state) {
 			this.choice = choice;
 			this.tableNumber = tableNumber;
 			this.w = w;
+			this.state = state;
 		}
 	}
 }

@@ -47,7 +47,7 @@ public class WaiterGui extends JPanel implements Gui {
         return true;
     }
 
-    public void DoBringToTable(CustomerAgent customer, int table_number) {
+    public void DoGoToTable(CustomerAgent customer, int table_number) {
     	
 		if (table_number == 1){
 			xTable = 200;
@@ -61,9 +61,17 @@ public class WaiterGui extends JPanel implements Gui {
 		}
     	xDestination = xTable + xGap;
         yDestination = yTable - yGap;
-        while (xPos == xDestination && yPos == yDestination) {
+        while (!(xPos == xDestination && yPos == yDestination)) {
         }
     }
+    
+    public void DoGoToCook() {
+    	xDestination = 300;
+        yDestination = 250 - yGap;
+        while (!(xPos == xDestination && yPos == yDestination)) {
+        }
+    }
+
 
 	public void updateDestination(int x, int y, int w, int h){
 		x_vary = x;

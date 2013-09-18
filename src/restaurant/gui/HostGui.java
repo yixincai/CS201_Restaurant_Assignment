@@ -11,11 +11,7 @@ public class HostGui extends JPanel implements Gui {
 
     private HostAgent agent = null;
 
-    private int xPos = -20, yPos = -20;//default waiter position
-    private int xDestination = -20, yDestination = -20;//default start position
-    private int x_vary, y_vary;
-    public static int xTable = 200;
-    public static int yTable = 150;
+    private int xPos = 300, yPos = 50;//default waiter position
     public static int xGap = 20;
     public static int yGap = 20;
     
@@ -26,55 +22,18 @@ public class HostGui extends JPanel implements Gui {
     }
 
     public void updatePosition() {
-        if (xPos < xDestination)
-            xPos++;
-        else if (xPos > xDestination)
-            xPos--;
-
-        if (yPos < yDestination)
-            yPos++;
-        else if (yPos > yDestination)
-            yPos--;
-
-        if (xPos == xDestination && yPos == yDestination
-        		& (xDestination == xTable + xGap) & (yDestination == yTable - yGap)) {
-        }
     }
 
     public void draw(Graphics2D g) {
-        //g.setColor(Color.MAGENTA);
-        //g.fillRect(xPos, yPos, xGap, yGap);
-    	g.drawImage(image, xPos, yPos, xGap, yGap, this);
+        g.setColor(Color.MAGENTA);
+        g.fillRect(xPos, yPos, xGap, yGap);
     }
+    
+	public void updateDestination(int x, int y, int w, int h){
+	}
 
     public boolean isPresent() {
         return true;
-    }
-
-    public void DoBringToTable(CustomerAgent customer, int table_number) {
-    	
-		if (table_number == 1){
-			xTable = 200;
-		}
-		else if(table_number == 2){
-			xTable = 300;
-		}
-		else if (table_number == 3){
-			xTable = x_vary;
-			yTable = y_vary;
-		}
-    	xDestination = xTable + xGap;
-        yDestination = yTable - yGap;
-    }
-
-	public void updateDestination(int x, int y, int w, int h){
-		x_vary = x;
-		y_vary = y;
-	}    
-    
-    public void DoLeaveCustomer() {
-        xDestination = -xGap;
-        yDestination = -yGap;
     }
 
     public int getXPos() {
