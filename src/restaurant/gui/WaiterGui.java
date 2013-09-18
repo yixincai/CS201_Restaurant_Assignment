@@ -2,14 +2,14 @@ package restaurant.gui;
 
 
 import restaurant.CustomerAgent;
-import restaurant.HostAgent;
+import restaurant.WaiterAgent;
 
 import java.awt.*;
 import javax.swing.*;
 
-public class HostGui extends JPanel implements Gui {
+public class WaiterGui extends JPanel implements Gui {
 
-    private HostAgent agent = null;
+    private WaiterAgent agent = null;
 
     private int xPos = -20, yPos = -20;//default waiter position
     private int xDestination = -20, yDestination = -20;//default start position
@@ -21,7 +21,7 @@ public class HostGui extends JPanel implements Gui {
     
     private ImageIcon i = new ImageIcon("image/host.jpg");
     private Image image = i.getImage();
-    public HostGui(HostAgent agent) {
+    public WaiterGui(WaiterAgent agent) {
         this.agent = agent;
     }
 
@@ -35,10 +35,6 @@ public class HostGui extends JPanel implements Gui {
             yPos++;
         else if (yPos > yDestination)
             yPos--;
-
-        if (xPos == xDestination && yPos == yDestination
-        		& (xDestination == xTable + xGap) & (yDestination == yTable - yGap)) {
-        }
     }
 
     public void draw(Graphics2D g) {
@@ -65,6 +61,8 @@ public class HostGui extends JPanel implements Gui {
 		}
     	xDestination = xTable + xGap;
         yDestination = yTable - yGap;
+        while (xPos == xDestination && yPos == yDestination) {
+        }
     }
 
 	public void updateDestination(int x, int y, int w, int h){

@@ -20,6 +20,7 @@ public class HostAgent extends Agent {
 	public List<CustomerAgent> waitingCustomers
 	= new ArrayList<CustomerAgent>();
 	public Collection<Table> tables;
+	public List<WaiterAgent> waiters = new ArrayList<WaiterAgent>(); 
 	//note that tables is typed with Collection semantics.
 	//Later we will see how it is implemented
 
@@ -37,6 +38,10 @@ public class HostAgent extends Agent {
 		for (int ix = 1; ix <= NTABLES; ix++) {
 			tables.add(new Table(ix));//how you add to a collections
 		}
+	}
+	
+	public void addWaiter(WaiterAgent w){
+		waiters.add(w);
 	}
 
 	public String getMaitreDName() {
@@ -61,20 +66,14 @@ public class HostAgent extends Agent {
 		stateChanged();
 	}
 
-	public void msgLeavingTable(CustomerAgent cust) {
+	public void msgTableIsFree(CustomerAgent cust, int tablenumber) {
 		for (Table table : tables) {
-			if (table.getOccupant() == cust) {
+			if (table.tableNumber == tablenumber) {
 				print(cust + " leaving " + table);
 				table.setUnoccupied();
 				stateChanged();
 			}
 		}
-	}
-
-	public void msgAtTable() {//from animation
-		//print("msgAtTable() called");
-		atTable.release();// = true;
-		stateChanged();
 	}
 
 	/**
@@ -104,8 +103,7 @@ public class HostAgent extends Agent {
 	// Actions
 
 	private void seatCustomer(CustomerAgent customer, Table table) {
-		customer.msgSitAtTable(table.tableNumber);
-		DoSeatCustomer(customer, table);
+		waiters.get(0).msgSitAtTable(customer, table.tableNumber);
 		try {
 			atTable.acquire();
 		} catch (InterruptedException e) {
@@ -114,16 +112,6 @@ public class HostAgent extends Agent {
 		}
 		table.setOccupant(customer);
 		waitingCustomers.remove(customer);
-		hostGui.DoLeaveCustomer();
-	}
-
-	// The animation DoXYZ() routines
-	private void DoSeatCustomer(CustomerAgent customer, Table table) {
-		//Notice how we print "customer" directly. It's toString method will do it.
-		//Same with "table"
-		print("Seating " + customer + " at " + table);
-		hostGui.DoBringToTable(customer, table.tableNumber); 
-
 	}
 
 	//utilities
