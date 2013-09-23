@@ -9,7 +9,8 @@ import java.util.List;
 import java.util.ArrayList;
 
 public class AnimationPanel extends JPanel implements ActionListener {
-    private final int TABLEX = 200;
+    private final int TABLEX1 = 200;
+    private final int TABLEX2 = 300;
     private final int TABLEY = 150;
     private final int GAPX = 50;
     private final int GAPY = 50;
@@ -20,7 +21,7 @@ public class AnimationPanel extends JPanel implements ActionListener {
     private boolean table3_added = false;
     private List<Gui> guis = new ArrayList<Gui>();
 
-    private int width, height, x_pos, y_pos;
+    private int width, height, TABLEX3 = 100, TABLEY3 = 150;
     public AnimationPanel() {
     	setSize(WINDOWX, WINDOWY);
         setVisible(true);
@@ -35,7 +36,7 @@ public class AnimationPanel extends JPanel implements ActionListener {
 		repaint();  //Will have paintComponent called
 	}
 	
-	public void updateTable(int x, int y, int w, int h){
+	/*public void updateTable(int x, int y, int w, int h){
 		width = w;
 		height = h;
 		x_pos = x;
@@ -44,7 +45,7 @@ public class AnimationPanel extends JPanel implements ActionListener {
         for(Gui gui : guis) {
             gui.updateDestination(x, y, w, h);
         }
-	}
+	}*/
 
     public void paintComponent(Graphics g) {
         Graphics2D g2 = (Graphics2D)g;
@@ -55,11 +56,11 @@ public class AnimationPanel extends JPanel implements ActionListener {
 
         //Here is the table
         g2.setColor(Color.ORANGE);
-        g2.fillRect(TABLEX, TABLEY, GAPX, GAPY);//200 and 250 need to be table params
+        g2.fillRect(TABLEX1, TABLEY, GAPX, GAPY);//200 and 250 need to be table params
 
-        g2.fillRect(TABLEX+100, TABLEY, GAPX, GAPY);
-        if (table3_added)
-        	g2.fillRect(x_pos, y_pos, width, height);        
+        g2.fillRect(TABLEX2, TABLEY, GAPX, GAPY);
+       // if (table3_added)
+        g2.fillRect(TABLEX3, TABLEY3, GAPX, GAPY);        
         for(Gui gui : guis) {
             if (gui.isPresent()) {
                 gui.updatePosition();

@@ -100,8 +100,18 @@ public class RestaurantPanel extends JPanel {
         }
     }
 
-    public void addPerson1(String name) {
-    	customerPanel.addPerson(name);
+    public void addPerson1(String type, String name) {
+    	if (type.equals("Customers")) {
+    		CustomerAgent c = new CustomerAgent(name);	
+    		CustomerGui g = new CustomerGui(c, gui);
+
+    		gui.animationPanel.addGui(g);// dw
+    		c.setHost(host);
+    		c.setGui(g);
+    		customers.add(c);
+    		c.startThread();
+    		c.getGui().setHungry();
+    	}
     }
     /**
      * Adds a customer or waiter to the appropriate list

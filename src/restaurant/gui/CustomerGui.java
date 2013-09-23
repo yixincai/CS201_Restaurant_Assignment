@@ -26,18 +26,18 @@ public class CustomerGui extends JPanel implements Gui{
 	public static final int yTable = 150;
     private final int GAPX = 20;
     private final int GAPY = 20;
-    private final int DESTINATIONX = -40;
-    private final int DESTINATIONY = -40;
+    private final int OriginX = -40;
+    private final int OriginY = -40;
     
     private ImageIcon i = new ImageIcon("image/customer.jpg");
     private Image image = i.getImage();
     
 	public CustomerGui(CustomerAgent c, RestaurantGui gui){ //HostAgent m) {
 		agent = c;
-		xPos = DESTINATIONX;
-		yPos = DESTINATIONY;
-		xDestination = DESTINATIONX;
-		yDestination = DESTINATIONY;
+		xPos = OriginX;
+		yPos = OriginY;
+		xDestination = OriginX;
+		yDestination = OriginY;
 		//maitreD = m;
 		this.gui = gui;
 	}
@@ -97,8 +97,8 @@ public class CustomerGui extends JPanel implements Gui{
 			yDestination = yTable;
 		}
 		else if (seatnumber == 3){
-			xDestination = x_vary;
-			yDestination = y_vary;
+			xDestination = 100;
+			yDestination = yTable;
 		}
 		command = Command.GoToSeat;
 	}
@@ -110,8 +110,8 @@ public class CustomerGui extends JPanel implements Gui{
 	}
 	
 	public void DoExitRestaurant() {
-		xDestination = DESTINATIONX;
-		yDestination = DESTINATIONY;
+		xDestination = OriginX;
+		yDestination = OriginY;
 		command = Command.LeaveRestaurant;
 	}
 	

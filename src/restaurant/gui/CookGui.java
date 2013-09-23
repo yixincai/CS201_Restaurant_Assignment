@@ -23,7 +23,7 @@ public class CookGui implements Gui{
 	
     private HostAgent agent = null;
 
-    private int xPos = 300, yPos = 250;//default waiter position
+    private int xPos = 300, yPos = 250;//default cook position
     public static int xTable = 200;
     public static int yTable = 150;
     public static int xGap = 20;

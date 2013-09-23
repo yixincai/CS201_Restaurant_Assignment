@@ -89,7 +89,12 @@ public class WaiterAgent extends Agent {
 	 * Scheduler.  Determine what action is called for, and do it.
 	 */
 	protected boolean pickAndExecuteAnAction() {
-		
+		for (MyCustomer customer : customers) {
+			if (customer.state == MyCustomer.CustomerState.finished) {
+				clearCustomer(customer);
+				return true;
+			}
+		}
 		for (MyCustomer customer : customers) {
 			if (customer.state == MyCustomer.CustomerState.waiting) {
 				seatCustomer(customer);
@@ -114,12 +119,6 @@ public class WaiterAgent extends Agent {
 				return true;
 			}
 		}
-		for (MyCustomer customer : customers) {
-			if (customer.state == MyCustomer.CustomerState.finished) {
-				clearCustomer(customer);
-				return true;
-			}
-		}
 
 		return false;
 		//we have tried all our rules and found
@@ -130,10 +129,16 @@ public class WaiterAgent extends Agent {
 	// Actions
 
 	private void seatCustomer(MyCustomer customer) {
+		waiterGui.DoFetchCustomer();
 		customer.state = MyCustomer.CustomerState.seated;
 		customer.c.msgFollowMe(this, customer.tableNumber);
 		DoSeatCustomer(customer.c, customer.tableNumber);
-
+		/*try {
+			atTable.acquire();
+		} catch (InterruptedException e) {
+		// TODO Auto-generated catch block
+			e.printStackTrace();
+		}*/
 	}
 
 	private void askForChoice(MyCustomer customer){

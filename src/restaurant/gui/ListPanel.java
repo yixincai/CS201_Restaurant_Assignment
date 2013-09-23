@@ -14,7 +14,7 @@ import java.util.ArrayList;
  * Subpanel of restaurantPanel.
  * This holds the scroll panes for the customers and, later, for waiters
  */
-public class ListPanel extends JPanel implements ActionListener {
+public class ListPanel extends JPanel implements ActionListener, KeyListener {
 
     public JScrollPane pane =
             new JScrollPane(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
@@ -25,7 +25,8 @@ public class ListPanel extends JPanel implements ActionListener {
 
     private RestaurantPanel restPanel;
     private String type;
-
+    private JTextField addPersonA = new JTextField();
+    private JCheckBox stateCB1;
     /**
      * Constructor for ListPanel.  Sets up all the gui
      *
@@ -38,9 +39,23 @@ public class ListPanel extends JPanel implements ActionListener {
 
         setLayout(new BoxLayout((Container) this, BoxLayout.Y_AXIS));
         add(new JLabel("<html><pre> <u>" + type + "</u><br></pre></html>"));
+        
+        addPersonA.addActionListener(this);
+        addPersonA.addKeyListener(this);
+        addPersonA.setMaximumSize(new Dimension(300,100));
+        add(addPersonA);
+        setFocusable(true);
+        requestFocusInWindow();
 
         addPersonB.addActionListener(this);
         add(addPersonB);
+
+        stateCB1 = new JCheckBox();        
+        stateCB1.setVisible(true);
+        stateCB1.addActionListener(this);
+        stateCB1.setText("Hungry?");
+        stateCB1.setEnabled(false);
+        add(stateCB1);
         
         view.setLayout(new BoxLayout((Container) view, BoxLayout.Y_AXIS));
         pane.setViewportView(view);
@@ -54,7 +69,9 @@ public class ListPanel extends JPanel implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == addPersonB) {
         	// Chapter 2.19 describes showInputDialog()
-            addPerson(JOptionPane.showInputDialog("Please enter a name:"));
+        	if (addPersonA.getText().compareTo("") == 0)
+        		return;
+        	addPerson(addPersonA.getText());
         }
         else {
         	// Isn't the second for loop more beautiful?
@@ -88,9 +105,29 @@ public class ListPanel extends JPanel implements ActionListener {
             button.addActionListener(this);
             list.add(button);
             view.add(button);
-            restPanel.addPerson(type, name);//puts customer on list
+            if (stateCB1.isSelected())
+            	restPanel.addPerson1(type, name);
+            else 
+            	restPanel.addPerson(type, name);//puts customer on list
             restPanel.showInfo(type, name);//puts hungry button on panel
             validate();
         }
+    }
+    
+    public void keyTyped(KeyEvent e) {
+    	if (e.getSource() == addPersonA)
+    		stateCB1.setEnabled(addPersonA.getText().compareTo("") != 0);
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+    	if (e.getSource() == addPersonA)
+    		stateCB1.setEnabled(addPersonA.getText().compareTo("") != 0);
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+    	if (e.getSource() == addPersonA)
+    		stateCB1.setEnabled(addPersonA.getText().compareTo("") != 0);
     }
 }

@@ -1,7 +1,5 @@
 package restaurant.gui;
 
-
-import restaurant.CustomerAgent;
 import restaurant.HostAgent;
 
 import java.awt.*;
@@ -11,7 +9,7 @@ public class HostGui extends JPanel implements Gui {
 
     private HostAgent agent = null;
 
-    private int xPos = 300, yPos = 50;//default waiter position
+    private int xPos = 50, yPos = 20;//default waiter position
     public static int xGap = 20;
     public static int yGap = 20;
     

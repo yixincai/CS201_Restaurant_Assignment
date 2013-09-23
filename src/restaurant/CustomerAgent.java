@@ -25,11 +25,11 @@ public class CustomerAgent extends Agent {
 	private int seatnumber;
 	//    private boolean isHungry = false; //hack for gui
 	public enum AgentState
-	{DoingNothing, WaitingInRestaurant, BeingSeated, Seated, ReadyToOrder, Eating, DoneEating, Leaving};
+	{DoingNothing, WaitingInRestaurant, BeingSeated, Seated, ReadyToOrder, GivenOrder, Eating, DoneEating, Leaving};
 	private AgentState state = AgentState.DoingNothing;//The start state
 
 	public enum AgentEvent 
-	{none, gotHungry, followHost, orderFood, gotFood, seated, doneEating, doneLeaving};
+	{none, gotHungry, followHost, seated, doneThinking, orderFood, gotFood, doneEating, doneLeaving};
 	AgentEvent event = AgentEvent.none;
 
 	/**
@@ -114,15 +114,20 @@ public class CustomerAgent extends Agent {
 		}
 		else if (state == AgentState.BeingSeated && event == AgentEvent.seated){
 			state = AgentState.Seated;
-			AskWaiterToPickUpOrder();
+			ThinkAboutMenu();
 			return true;
 		}
-		else if (state == AgentState.Seated && event == AgentEvent.orderFood){
+		else if (state == AgentState.Seated && event == AgentEvent.doneThinking){
 			state = AgentState.ReadyToOrder;
+			AskWaiterToPickUpOrder();
+			return true;
+		}	
+		else if (state == AgentState.ReadyToOrder && event == AgentEvent.orderFood){
+			state = AgentState.GivenOrder;
 			GiveOrder();
 			return true;
 		}	
-		else if (state == AgentState.ReadyToOrder && event == AgentEvent.gotFood){
+		else if (state == AgentState.GivenOrder && event == AgentEvent.gotFood){
 			state = AgentState.Eating;
 			EatFood();
 			return true;
@@ -150,6 +155,17 @@ public class CustomerAgent extends Agent {
 	private void AskWaiterToPickUpOrder() {
 		Do("I'm ready to order");
 		waiter.msgReadyToOrder(this);//send our instance, so he can respond to us
+	}
+	
+	private void ThinkAboutMenu() {
+		Do("Thinking about Food");
+		timer.schedule(new TimerTask() {
+			public void run() {
+				event = AgentEvent.doneThinking;
+				stateChanged();
+			}
+		},
+		3000);//getHungerLevel() * 1000);//how long to wait before running task
 	}
 	
 	private void GiveOrder() {

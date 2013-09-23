@@ -46,7 +46,9 @@ public class CookAgent extends Agent{
 				cookOrder(order);
 				return true;
 			}
-			else if (order.state == Order.OrderState.Cooked){
+		}
+		for (Order order : orders){
+			if (order.state == Order.OrderState.Cooked){
 				returnOrder(order);
 				return true;
 			}

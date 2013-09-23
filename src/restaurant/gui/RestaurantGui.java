@@ -10,7 +10,7 @@ import java.awt.event.*;
  * Main GUI class.
  * Contains the main frame and subsequent panels
  */
-public class RestaurantGui extends JFrame implements ActionListener , KeyListener{
+public class RestaurantGui extends JFrame implements ActionListener{
     /* The GUI has two frames, the control frame (in variable gui) 
      * and the animation frame, (in variable animationFrame within gui)
      */
@@ -31,8 +31,8 @@ public class RestaurantGui extends JFrame implements ActionListener , KeyListene
 
     private Object currentPerson;/* Holds the agent that the info is about.
     								Seems like a hack */
-    private JCheckBox stateCB1, pauseCB;//part of infoLabel
-    private JButton addPersonB = new JButton("AddTable");
+    private JCheckBox pauseCB;//part of infoLabel
+   // private JButton addPersonB = new JButton("AddTable");
     /**
      * Constructor for RestaurantGui class.
      * Sets up all the gui components.
@@ -46,7 +46,7 @@ public class RestaurantGui extends JFrame implements ActionListener , KeyListene
         setLayout(new BoxLayout((Container) getContentPane(), 
         		BoxLayout.Y_AXIS));
 
-        Dimension restDim = new Dimension(WINDOWX, (int) (WINDOWY * .3));
+        Dimension restDim = new Dimension(WINDOWX, (int) (WINDOWY * .35));
         restPanel.setPreferredSize(restDim);
         restPanel.setMinimumSize(restDim);
         restPanel.setMaximumSize(restDim);
@@ -72,29 +72,18 @@ public class RestaurantGui extends JFrame implements ActionListener , KeyListene
         infoPanel.add(stateCB);
         add(infoPanel);
         
-        stateCB1 = new JCheckBox();        
-        stateCB1.setVisible(true);
-        stateCB1.addActionListener(this);
-        stateCB1.setText("Hungry?");
-        stateCB1.setEnabled(false);
-        
-        addPersonA.addActionListener(this);
-        addPersonA.addKeyListener(this);
-        addPersonA.setMaximumSize(new Dimension(300,100));;
-        add(addPersonA);
-        setFocusable(true);
-        requestFocusInWindow();
-
-        add(stateCB1);
-        
-        addPersonB.addActionListener(this);
-        add(addPersonB);
+   //     addPersonB.addActionListener(this);
+    //    add(addPersonB);
         
         pauseCB = new JCheckBox("pause");
         pauseCB.setVisible(true);
         pauseCB.addActionListener(this);
         add(pauseCB);
         
+        Dimension animationDim = new Dimension(WINDOWX, (int) (WINDOWY * .5));
+        animationPanel.setPreferredSize(animationDim);
+        animationPanel.setMinimumSize(animationDim);
+        animationPanel.setMaximumSize(animationDim);
     	add(animationPanel);
     }
     /**
@@ -131,16 +120,6 @@ public class RestaurantGui extends JFrame implements ActionListener , KeyListene
                 CustomerAgent c = (CustomerAgent) currentPerson;
                 c.getGui().setHungry();
                 stateCB.setEnabled(false);
-                stateCB1.setEnabled(false);
-            }
-        }
-        else if (e.getSource() == stateCB1) {
-            restPanel.addPerson1(addPersonA.getText());
-            stateCB1.setEnabled(false);
-            if (currentPerson instanceof CustomerAgent) {
-                CustomerAgent c = (CustomerAgent) currentPerson;
-                c.getGui().setHungry();
-                stateCB.setEnabled(false);
             }
         }
         else if (e.getSource() == pauseCB){
@@ -157,13 +136,13 @@ public class RestaurantGui extends JFrame implements ActionListener , KeyListene
         		pauseCB.setSelected(false);
         	}
         }
-        else if (e.getSource() == addPersonB){
+/*        else if (e.getSource() == addPersonB){
         	Integer height = Integer.parseInt(JOptionPane.showInputDialog("Please enter table height:"));
         	Integer width = Integer.parseInt(JOptionPane.showInputDialog("Please enter table width:"));
         	Integer x_pos = Integer.parseInt(JOptionPane.showInputDialog("Please enter table x position:"));
         	Integer y_pos = Integer.parseInt(JOptionPane.showInputDialog("Please enter table y position:"));
         	animationPanel.updateTable(x_pos, y_pos, width, height);
-        } 
+        }*/ 
     }
     
     /**
@@ -177,28 +156,11 @@ public class RestaurantGui extends JFrame implements ActionListener , KeyListene
             CustomerAgent cust = (CustomerAgent) currentPerson;
             if (c.equals(cust)) {
                 stateCB.setEnabled(true);
-                stateCB1.setEnabled(true);
                 stateCB.setSelected(false);
-                stateCB1.setSelected(false);
             }
         }
     }
-    public void keyTyped(KeyEvent e) {
-    	if (e.getSource() == addPersonA)
-    		stateCB1.setEnabled(addPersonA.getText().compareTo("") != 0);
-    }
 
-    @Override
-    public void keyReleased(KeyEvent e) {
-    	if (e.getSource() == addPersonA)
-    		stateCB1.setEnabled(addPersonA.getText().compareTo("") != 0);
-    }
-
-    @Override
-    public void keyPressed(KeyEvent e) {
-    	if (e.getSource() == addPersonA)
-    		stateCB1.setEnabled(addPersonA.getText().compareTo("") != 0);
-    }
     /**
      * Main routine to get gui started
      */
