@@ -32,6 +32,9 @@ public class CustomerGui extends JPanel implements Gui{
     private ImageIcon i = new ImageIcon("image/customer.jpg");
     private Image image = i.getImage();
     
+    private String choice;
+    private boolean show_choice = false;
+    
 	public CustomerGui(CustomerAgent c, RestaurantGui gui){ //HostAgent m) {
 		agent = c;
 		xPos = OriginX;
@@ -66,9 +69,10 @@ public class CustomerGui extends JPanel implements Gui{
 	}
 
 	public void draw(Graphics2D g) {
-		//g.setColor(Color.GREEN);
-		//g.fillRect(xPos, yPos, GAPX, GAPY);
+		g.setColor(Color.BLUE);
     	g.drawImage(image, xPos, yPos, GAPX, GAPY, this);
+    	if (show_choice)
+    		g.drawString(this.choice, xDestination, yDestination + 40);
 	}
 
 	public boolean isPresent() {
@@ -109,7 +113,18 @@ public class CustomerGui extends JPanel implements Gui{
 		System.out.println(x + "" + y);
 	}
 	
+	public void showOrderFood(String choice){
+		this.choice = choice + "?";
+		show_choice = true;
+	}
+
+	public void eatFood(String choice){
+		this.choice = choice;
+		show_choice = true;
+	}
+	
 	public void DoExitRestaurant() {
+		show_choice = false;
 		xDestination = OriginX;
 		yDestination = OriginY;
 		command = Command.LeaveRestaurant;

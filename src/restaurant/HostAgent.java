@@ -103,8 +103,10 @@ public class HostAgent extends Agent {
 	// Actions
 
 	private void seatCustomer(CustomerAgent customer, Table table) {
-		Do("Telling waiter" + waiters.get(0).getName() + "to seat customer");
-		waiters.get(0).msgSitAtTable(customer, table.tableNumber);
+		Random r = new Random();
+		int waiterNumber = r.nextInt(waiters.size());
+		Do("Telling waiter " + waiterNumber + " " + waiters.get(waiterNumber).getName() + " to seat customer");
+		waiters.get(waiterNumber).msgSitAtTable(customer, table.tableNumber);
 		table.setOccupant(customer);
 		waitingCustomers.remove(customer);
 		stateChanged();

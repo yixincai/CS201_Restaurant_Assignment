@@ -1,14 +1,12 @@
 package restaurant;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.Semaphore;
 
-import restaurant.gui.CookGui;
 import restaurant.CookAgent.*;
 import restaurant.CustomerAgent;
 import restaurant.HostAgent;
+import restaurant.Menu;
 import restaurant.gui.*;
 import agent.Agent;
 
@@ -19,8 +17,9 @@ public class WaiterAgent extends Agent {
 	public HostAgent host = null;
 	public WaiterGui waiterGui = null;
 	
+	public Menu menu = new Menu();
+	
 	private String name;
-	private Semaphore atTable = new Semaphore(0,true);
 
 	public WaiterAgent(String name) {
 		super();
@@ -131,7 +130,7 @@ public class WaiterAgent extends Agent {
 	private void seatCustomer(MyCustomer customer) {
 		waiterGui.DoFetchCustomer();
 		customer.state = MyCustomer.CustomerState.seated;
-		customer.c.msgFollowMe(this, customer.tableNumber);
+		customer.c.msgFollowMe(this, customer.tableNumber, menu);
 		DoSeatCustomer(customer.c, customer.tableNumber);
 		/*try {
 			atTable.acquire();

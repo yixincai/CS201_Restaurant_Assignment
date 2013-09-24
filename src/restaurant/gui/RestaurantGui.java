@@ -27,12 +27,14 @@ public class RestaurantGui extends JFrame implements ActionListener{
     private JPanel infoPanel;
     private JLabel infoLabel; //part of infoPanel
     private JCheckBox stateCB;//part of infoLabel
-    private JTextField addPersonA = new JTextField();
-
     private Object currentPerson;/* Holds the agent that the info is about.
     								Seems like a hack */
+    
     private JCheckBox pauseCB;//part of infoLabel
-   // private JButton addPersonB = new JButton("AddTable");
+    
+    private JPanel waiterPanel;
+    private JTextField waiterNameTF = new JTextField(15);
+    private JButton addWaiterB = new JButton("AddWaiter");
     /**
      * Constructor for RestaurantGui class.
      * Sets up all the gui components.
@@ -71,9 +73,17 @@ public class RestaurantGui extends JFrame implements ActionListener{
         infoPanel.add(infoLabel);
         infoPanel.add(stateCB);
         add(infoPanel);
-        
-   //     addPersonB.addActionListener(this);
-    //    add(addPersonB);
+
+        Dimension waiterDim = new Dimension(WINDOWX, (int) (WINDOWY * .05));
+        waiterPanel = new JPanel();
+        waiterPanel.setPreferredSize(waiterDim);
+        waiterPanel.setMinimumSize(waiterDim);
+        waiterPanel.setMaximumSize(waiterDim);
+        waiterPanel.setLayout(new FlowLayout());
+        waiterPanel.add(waiterNameTF);
+        addWaiterB.addActionListener(this);
+        waiterPanel.add(addWaiterB);
+        add(waiterPanel);
         
         pauseCB = new JCheckBox("pause");
         pauseCB.setVisible(true);
@@ -136,13 +146,12 @@ public class RestaurantGui extends JFrame implements ActionListener{
         		pauseCB.setSelected(false);
         	}
         }
-/*        else if (e.getSource() == addPersonB){
-        	Integer height = Integer.parseInt(JOptionPane.showInputDialog("Please enter table height:"));
-        	Integer width = Integer.parseInt(JOptionPane.showInputDialog("Please enter table width:"));
-        	Integer x_pos = Integer.parseInt(JOptionPane.showInputDialog("Please enter table x position:"));
-        	Integer y_pos = Integer.parseInt(JOptionPane.showInputDialog("Please enter table y position:"));
-        	animationPanel.updateTable(x_pos, y_pos, width, height);
-        }*/ 
+        else if (e.getSource() == addWaiterB){
+        	if (waiterNameTF.getText().compareTo("") != 0){
+        		System.out.println("Waiter added");
+        		restPanel.addPerson("Waiters", waiterNameTF.getText());
+        	}
+        } 
     }
     
     /**

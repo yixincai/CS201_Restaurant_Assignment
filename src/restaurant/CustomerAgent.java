@@ -1,14 +1,14 @@
 package restaurant;
 
 import restaurant.gui.CustomerGui;
-import restaurant.gui.RestaurantGui;
+import restaurant.Menu;
 import agent.Agent;
 import restaurant.WaiterAgent;
 import restaurant.HostAgent;
 
 import java.util.Timer;
 import java.util.TimerTask;
-
+import java.util.*;
 /**
  * Restaurant customer agent.
  */
@@ -21,7 +21,8 @@ public class CustomerAgent extends Agent {
 	// agent correspondents
 	private HostAgent host;
 	private WaiterAgent waiter;
-	
+	private static Menu menu = null;
+	private String choice;
 	private int seatnumber;
 	//    private boolean isHungry = false; //hack for gui
 	public enum AgentState
@@ -65,9 +66,10 @@ public class CustomerAgent extends Agent {
 		stateChanged();
 	}
 
-	public void msgFollowMe(WaiterAgent w, int tablenumber) {
+	public void msgFollowMe(WaiterAgent w, int tablenumber, Menu menu) {
 		print("Received msgSitAtTable");
 		this.waiter = w;
+		this.menu = menu;
 		seatnumber = tablenumber;
 		event = AgentEvent.followHost;
 		stateChanged();
@@ -154,6 +156,7 @@ public class CustomerAgent extends Agent {
 
 	private void AskWaiterToPickUpOrder() {
 		Do("I'm ready to order");
+		customerGui.showOrderFood(this.choice);
 		waiter.msgReadyToOrder(this);//send our instance, so he can respond to us
 	}
 	
@@ -166,11 +169,14 @@ public class CustomerAgent extends Agent {
 			}
 		},
 		3000);//getHungerLevel() * 1000);//how long to wait before running task
+		Random r = new Random();
+		int choice = r.nextInt(menu.menu.size());
+		this.choice = menu.menu.get(choice).name;
 	}
 	
 	private void GiveOrder() {
 		Do("Here is my order");
-		waiter.msgHereIsTheChoice(this, "Steak");//send our instance, so he can respond to us
+		waiter.msgHereIsTheChoice(this, this.choice);//send our instance, so he can respond to us
 	}
 	
 	private void SitDown() {
@@ -179,6 +185,7 @@ public class CustomerAgent extends Agent {
 	}
 
 	private void EatFood() {
+		customerGui.eatFood(this.choice);
 		Do("Eating Food");
 		//This next complicated line creates and starts a timer thread.
 		//We schedule a deadline of getHungerLevel()*1000 milliseconds.
