@@ -156,7 +156,6 @@ public class CustomerAgent extends Agent {
 
 	private void AskWaiterToPickUpOrder() {
 		Do("I'm ready to order");
-		customerGui.showOrderFood(this.choice);
 		waiter.msgReadyToOrder(this);//send our instance, so he can respond to us
 	}
 	
@@ -176,6 +175,7 @@ public class CustomerAgent extends Agent {
 	
 	private void GiveOrder() {
 		Do("Here is my order");
+		customerGui.showOrderFood(this.choice);
 		waiter.msgHereIsTheChoice(this, this.choice);//send our instance, so he can respond to us
 	}
 	

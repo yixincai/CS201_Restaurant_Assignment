@@ -2,7 +2,7 @@ package restaurant;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.concurrent.Semaphore;
 import restaurant.CookAgent.*;
 import restaurant.CustomerAgent;
 import restaurant.HostAgent;
@@ -16,7 +16,7 @@ public class WaiterAgent extends Agent {
 	public CookAgent cook = null;
 	public HostAgent host = null;
 	public WaiterGui waiterGui = null;
-	
+	private Semaphore atTable = new Semaphore(0,true);
 	public Menu menu = new Menu();
 	
 	private String name;
@@ -59,7 +59,7 @@ public class WaiterAgent extends Agent {
 			if (c.c == cust && c.state == MyCustomer.CustomerState.aboutToGiveOrder) {
 				c.choice = choice;
 				c.state = MyCustomer.CustomerState.orderGiven;
-				System.out.println(c.state);
+				atTable.release();
 				stateChanged();
 				return;
 			}
@@ -132,32 +132,32 @@ public class WaiterAgent extends Agent {
 		customer.state = MyCustomer.CustomerState.seated;
 		customer.c.msgFollowMe(this, customer.tableNumber, menu);
 		DoSeatCustomer(customer.c, customer.tableNumber);
-		/*try {
-			atTable.acquire();
-		} catch (InterruptedException e) {
-		// TODO Auto-generated catch block
-			e.printStackTrace();
-		}*/
+
 	}
 
 	private void askForChoice(MyCustomer customer){
 		customer.state = MyCustomer.CustomerState.aboutToGiveOrder;	
-		customer.c.msgWhatWouldYouLike();
 		DoGoToCustomer(customer.c, customer.tableNumber);
+		customer.c.msgWhatWouldYouLike();
+		try {
+			atTable.acquire();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private void processOrder(MyCustomer customer){
 		Do("Process order");
 		customer.state = MyCustomer.CustomerState.orderProcessed;
-		cook.msgHereIsTheOrder(this, customer.choice, customer.tableNumber);
 		DoGoToCook();
+		cook.msgHereIsTheOrder(this, customer.choice, customer.tableNumber);
 	}
 	
 	private void giveOrderToCustomer(MyCustomer customer){
 		Do("Give order to customer");
 		customer.state = MyCustomer.CustomerState.eating;
-		customer.c.msgHereIsYourFood(customer.choice);
 		DoGiveFoodToCustomer(customer.c, customer.tableNumber);
+		customer.c.msgHereIsYourFood(customer.choice);
 	}
 
 	private void clearCustomer(MyCustomer customer){
