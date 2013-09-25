@@ -13,13 +13,12 @@ public class WaiterGui extends JPanel implements Gui {
 
     private int xPos = 200, yPos = 50;//default waiter position
     private int xDestination = 200, yDestination = 50;//default start position
-    private int x_vary, y_vary;
     public static int xTable = 200;
     public static int yTable = 150;
-    public static int xGap = 20;
-    public static int yGap = 20;
+    public static int xGap = 30;
+    public static int yGap = 30;
     
-    private ImageIcon i = new ImageIcon("image/host.jpg");
+    private ImageIcon i = new ImageIcon("image/waiter.png");
     private Image image = i.getImage();
     public WaiterGui(WaiterAgent agent) {
         this.agent = agent;
@@ -38,8 +37,6 @@ public class WaiterGui extends JPanel implements Gui {
     }
 
     public void draw(Graphics2D g) {
-        //g.setColor(Color.MAGENTA);
-        //g.fillRect(xPos, yPos, xGap, yGap);
     	g.drawImage(image, xPos, yPos, xGap, yGap, this);
     }
 
@@ -71,10 +68,12 @@ public class WaiterGui extends JPanel implements Gui {
         }
     }
 
+    public void DoLeaveCustomer() {
+    	xDestination = 200;
+        yDestination = 50;
+    }
 
 	public void updateDestination(int x, int y, int w, int h){
-		x_vary = x;
-		y_vary = y;
 	}    
     
     public void DoFetchCustomer() {

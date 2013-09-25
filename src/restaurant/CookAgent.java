@@ -2,15 +2,13 @@ package restaurant;
 
 import agent.Agent;
 import restaurant.WaiterAgent;
-import restaurant.CustomerAgent.AgentEvent;
 import restaurant.gui.*;
 
 import java.util.*;
-import java.util.concurrent.Semaphore;
 
 public class CookAgent extends Agent{
     private String name = "TheBestCook";
-	public List<Order> orders = new ArrayList<Order>();
+	public List<Order> orders = Collections.synchronizedList(new ArrayList<Order>());
 	Timer timer = new Timer();
 	public CookGui cookGui = null;
 	

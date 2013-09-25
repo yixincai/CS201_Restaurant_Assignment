@@ -1,18 +1,19 @@
 package restaurant.gui;
 
+import javax.swing.*;
 import java.awt.Graphics2D;
 import java.awt.Image;
-
 import javax.swing.ImageIcon;
 
 import restaurant.CookAgent;
-import restaurant.CustomerAgent;
 import restaurant.HostAgent;
 
-public class CookGui implements Gui{
+public class CookGui extends JPanel implements Gui{
 	
 	private CookAgent cook;
-	
+    private ImageIcon i = new ImageIcon("image/cook.jpg");
+    private Image image = i.getImage();
+    
 	CookGui(CookAgent c){
 		this.cook = c;
 	}
@@ -26,8 +27,8 @@ public class CookGui implements Gui{
     private int xPos = 300, yPos = 250;//default cook position
     public static int xTable = 200;
     public static int yTable = 150;
-    public static int xGap = 20;
-    public static int yGap = 20;
+    public static int xGap = 40;
+    public static int yGap = 40;
 
 
     public void updatePosition() {
@@ -35,8 +36,8 @@ public class CookGui implements Gui{
 
     public void draw(Graphics2D g) {
         //g.setColor(Color.MAGENTA);
-        g.fillRect(xPos, yPos, xGap, yGap);
-    	//g.drawImage(image, xPos, yPos, xGap, yGap, this);
+        //g.fillRect(xPos, yPos, xGap, yGap);
+    	g.drawImage(image, xPos, yPos, xGap, yGap, this);
     }
 
     public boolean isPresent() {

@@ -4,7 +4,6 @@ import agent.Agent;
 import restaurant.gui.HostGui;
 
 import java.util.*;
-import java.util.concurrent.Semaphore;
 
 /**
  * Restaurant Host Agent
@@ -25,6 +24,7 @@ public class HostAgent extends Agent {
 	//Later we will see how it is implemented
 
 	private String name;
+	int waiterNumber = 0;
 
 	public HostGui hostGui = null;
 
@@ -103,8 +103,10 @@ public class HostAgent extends Agent {
 	// Actions
 
 	private void seatCustomer(CustomerAgent customer, Table table) {
-		Random r = new Random();
-		int waiterNumber = r.nextInt(waiters.size());
+		if (waiterNumber < waiters.size() - 1)
+			waiterNumber++;
+		else
+			waiterNumber = 0;
 		Do("Telling waiter " + waiterNumber + " " + waiters.get(waiterNumber).getName() + " to seat customer");
 		waiters.get(waiterNumber).msgSitAtTable(customer, table.tableNumber);
 		table.setOccupant(customer);

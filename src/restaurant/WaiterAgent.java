@@ -132,7 +132,6 @@ public class WaiterAgent extends Agent {
 		customer.state = MyCustomer.CustomerState.seated;
 		customer.c.msgFollowMe(this, customer.tableNumber, menu);
 		DoSeatCustomer(customer.c, customer.tableNumber);
-
 	}
 
 	private void askForChoice(MyCustomer customer){
@@ -169,6 +168,7 @@ public class WaiterAgent extends Agent {
 	private void DoSeatCustomer(CustomerAgent customer, int table){
 		print("Seating " + customer + " at " + table);
 		waiterGui.DoGoToTable(customer, table);
+		waiterGui.DoLeaveCustomer();
 	}
 	
 	private void DoGoToCustomer(CustomerAgent customer, int table){
@@ -184,6 +184,7 @@ public class WaiterAgent extends Agent {
 	private void DoGiveFoodToCustomer(CustomerAgent customer, int table){
 		print("Seating " + customer + " at " + table);
 		waiterGui.DoGoToTable(customer, table);
+		waiterGui.DoLeaveCustomer();
 	}
 	
 	//utilities

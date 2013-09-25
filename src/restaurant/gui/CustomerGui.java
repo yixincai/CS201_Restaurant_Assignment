@@ -1,7 +1,6 @@
 package restaurant.gui;
 
 import restaurant.CustomerAgent;
-import restaurant.HostAgent;
 
 import java.awt.*;
 
@@ -17,15 +16,14 @@ public class CustomerGui extends JPanel implements Gui{
 	RestaurantGui gui;
 
 	private int xPos, yPos;
-	private int x_vary, y_vary;
 	private int xDestination, yDestination;
 	private enum Command {noCommand, GoToSeat, LeaveRestaurant};
 	private Command command=Command.noCommand;
 
 	public static final int xTable = 200;
 	public static final int yTable = 150;
-    private final int GAPX = 20;
-    private final int GAPY = 20;
+    private final int GAPX = 30;
+    private final int GAPY = 30;
     private final int OriginX = -40;
     private final int OriginY = -40;
     
@@ -108,9 +106,6 @@ public class CustomerGui extends JPanel implements Gui{
 	}
 
 	public void updateDestination(int x, int y, int w, int h){
-		x_vary = x;
-		y_vary = y;
-		System.out.println(x + "" + y);
 	}
 	
 	public void showOrderFood(String choice){

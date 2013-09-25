@@ -10,10 +10,10 @@ public class HostGui extends JPanel implements Gui {
     private HostAgent agent = null;
 
     private int xPos = 50, yPos = 20;//default waiter position
-    public static int xGap = 20;
-    public static int yGap = 20;
+    public static int xGap = 40;
+    public static int yGap = 40;
     
-    private ImageIcon i = new ImageIcon("image/host.jpg");
+    private ImageIcon i = new ImageIcon("image/host.png");
     private Image image = i.getImage();
     public HostGui(HostAgent agent) {
         this.agent = agent;
@@ -23,8 +23,7 @@ public class HostGui extends JPanel implements Gui {
     }
 
     public void draw(Graphics2D g) {
-        g.setColor(Color.MAGENTA);
-        g.fillRect(xPos, yPos, xGap, yGap);
+    	g.drawImage(image, xPos, yPos, xGap, yGap, this);
     }
     
 	public void updateDestination(int x, int y, int w, int h){
