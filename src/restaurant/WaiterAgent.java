@@ -1,8 +1,10 @@
 package restaurant;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Semaphore;
+
 import restaurant.CookAgent.*;
 import restaurant.CustomerAgent;
 import restaurant.HostAgent;
@@ -12,7 +14,7 @@ import agent.Agent;
 
 public class WaiterAgent extends Agent {
 
-	private List<MyCustomer> customers = new ArrayList<MyCustomer>();
+	private List<MyCustomer> customers = Collections.synchronizedList(new ArrayList<MyCustomer>());
 	public CookAgent cook = null;
 	public HostAgent host = null;
 	public WaiterGui waiterGui = null;
@@ -66,9 +68,9 @@ public class WaiterAgent extends Agent {
 		}
 	}
 	
-	public void msgOrderIsReady(Order o) {
+	public void msgOrderIsReady(String choice, int tableNumber) {
 		for (MyCustomer c: customers) {
-			if (c.tableNumber == o.tableNumber && c.state == MyCustomer.CustomerState.orderProcessed) {
+			if (c.tableNumber == tableNumber && c.state == MyCustomer.CustomerState.orderProcessed) {
 				c.state = MyCustomer.CustomerState.orderReady;
 				stateChanged();
 			}
@@ -153,9 +155,10 @@ public class WaiterAgent extends Agent {
 	}
 	
 	private void giveOrderToCustomer(MyCustomer customer){
+		DoGoToCook();
 		Do("Give order to customer");
 		customer.state = MyCustomer.CustomerState.eating;
-		DoGiveFoodToCustomer(customer.c, customer.tableNumber);
+		DoGiveFoodToCustomer(customer.c, customer.tableNumber, customer.choice);
 		customer.c.msgHereIsYourFood(customer.choice);
 	}
 
@@ -181,9 +184,9 @@ public class WaiterAgent extends Agent {
 		waiterGui.DoGoToCook();
 	}
 	
-	private void DoGiveFoodToCustomer(CustomerAgent customer, int table){
+	private void DoGiveFoodToCustomer(CustomerAgent customer, int table, String food){
 		print("Seating " + customer + " at " + table);
-		waiterGui.DoGoToTable(customer, table);
+		waiterGui.DoBringFood(customer, table, food);
 		waiterGui.DoLeaveCustomer();
 	}
 	

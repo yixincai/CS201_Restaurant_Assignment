@@ -10,10 +10,15 @@ public class CookAgent extends Agent{
     private String name = "TheBestCook";
 	public List<Order> orders = Collections.synchronizedList(new ArrayList<Order>());
 	Timer timer = new Timer();
+	private Map<String, Long> cook_time= new HashMap<String, Long>();
 	public CookGui cookGui = null;
 	
 	public CookAgent() {
 		super();
+		cook_time.put("Steak", (long)5000);
+		cook_time.put("Chicken", (long)4000);
+		cook_time.put("Salad", (long)2000);
+		cook_time.put("Pizza", (long)3000);
 	}
 
 	public void setGui(CookGui gui){
@@ -63,17 +68,18 @@ public class CookAgent extends Agent{
 	private void cookOrder(final Order order) {
 		DoCooking(order.choice);
 		order.state = Order.OrderState.Cooking;
+		final long time = cook_time.get(order.choice);
 		timer.schedule(new TimerTask() {
 			public void run() {
-				print("Cooking food");
+				print("Cooking " + order.choice + " with time of " + time);
 				msgDone(order);
 			}
-		}, 5000);
+		}, time);
 	}
 
 	private void returnOrder(Order order) {
 		Do("The order is ready");
-		order.w.msgOrderIsReady(order);
+		order.w.msgOrderIsReady(order.choice, order.tableNumber);
 		orders.remove(order);
 	}
 	

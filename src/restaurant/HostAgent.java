@@ -16,8 +16,7 @@ public class HostAgent extends Agent {
 	static final int NTABLES = 3;//a global for the number of tables.
 	//Notice that we implement waitingCustomers using ArrayList, but type it
 	//with List semantics.
-	public List<CustomerAgent> waitingCustomers
-	= new ArrayList<CustomerAgent>();
+	public List<CustomerAgent> waitingCustomers = Collections.synchronizedList(new ArrayList<CustomerAgent>());
 	public Collection<Table> tables;
 	public List<WaiterAgent> waiters = new ArrayList<WaiterAgent>(); 
 	//note that tables is typed with Collection semantics.

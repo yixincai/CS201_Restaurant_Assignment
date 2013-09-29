@@ -35,17 +35,12 @@ public class CookGui extends JPanel implements Gui{
     }
 
     public void draw(Graphics2D g) {
-        //g.setColor(Color.MAGENTA);
-        //g.fillRect(xPos, yPos, xGap, yGap);
     	g.drawImage(image, xPos, yPos, xGap, yGap, this);
     }
 
     public boolean isPresent() {
         return true;
     }
-
-	public void updateDestination(int x, int y, int w, int h){
-	}
 
     public int getXPos() {
         return xPos;

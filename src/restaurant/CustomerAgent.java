@@ -25,6 +25,7 @@ public class CustomerAgent extends Agent {
 	private String choice;
 	private int seatnumber;
 	//    private boolean isHungry = false; //hack for gui
+	private static final long thinking_time = 3000, eating_time = 5000;
 	public enum AgentState
 	{DoingNothing, WaitingInRestaurant, BeingSeated, Seated, ReadyToOrder, GivenOrder, Eating, DoneEating, Leaving};
 	private AgentState state = AgentState.DoingNothing;//The start state
@@ -167,7 +168,7 @@ public class CustomerAgent extends Agent {
 				stateChanged();
 			}
 		},
-		3000);//getHungerLevel() * 1000);//how long to wait before running task
+		thinking_time);//getHungerLevel() * 1000);//how long to wait before running task
 		Random r = new Random();
 		int choice = r.nextInt(menu.menu.size());
 		this.choice = menu.menu.get(choice).name;
@@ -204,7 +205,7 @@ public class CustomerAgent extends Agent {
 				stateChanged();
 			}
 		},
-		5000);//getHungerLevel() * 1000);//how long to wait before running task
+		eating_time);//getHungerLevel() * 1000);//how long to wait before running task
 	}
 
 	private void leaveTable() {

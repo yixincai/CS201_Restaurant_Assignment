@@ -25,9 +25,6 @@ public class HostGui extends JPanel implements Gui {
     public void draw(Graphics2D g) {
     	g.drawImage(image, xPos, yPos, xGap, yGap, this);
     }
-    
-	public void updateDestination(int x, int y, int w, int h){
-	}
 
     public boolean isPresent() {
         return true;

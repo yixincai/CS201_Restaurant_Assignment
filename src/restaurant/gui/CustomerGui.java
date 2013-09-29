@@ -20,12 +20,12 @@ public class CustomerGui extends JPanel implements Gui{
 	private enum Command {noCommand, GoToSeat, LeaveRestaurant};
 	private Command command=Command.noCommand;
 
-	public static final int xTable = 200;
+	public static final int xTable1 = 200, xTable2 = 300, xTable3 = 100;
 	public static final int yTable = 150;
     private final int GAPX = 30;
     private final int GAPY = 30;
-    private final int OriginX = -40;
-    private final int OriginY = -40;
+    private final int OriginX = -60;
+    private final int OriginY = -60;
     
     private ImageIcon i = new ImageIcon("image/customer.jpg");
     private Image image = i.getImage();
@@ -91,23 +91,20 @@ public class CustomerGui extends JPanel implements Gui{
 
 	public void DoGoToSeat(int seatnumber) {//later you will map seatnumber to table coordinates.
 		if (seatnumber == 1){
-			xDestination = 200;
+			xDestination = xTable1;
 			yDestination = yTable;
 		}
 		else if(seatnumber == 2){
-			xDestination = 300;
+			xDestination = xTable2;
 			yDestination = yTable;
 		}
 		else if (seatnumber == 3){
-			xDestination = 100;
+			xDestination = xTable3;
 			yDestination = yTable;
 		}
 		command = Command.GoToSeat;
 	}
 
-	public void updateDestination(int x, int y, int w, int h){
-	}
-	
 	public void showOrderFood(String choice){
 		this.choice = choice + "?";
 		show_choice = true;

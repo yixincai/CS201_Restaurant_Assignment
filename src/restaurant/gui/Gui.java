@@ -9,5 +9,4 @@ public interface Gui {
     public boolean isPresent();
     public void pauseThread();
     public void resumeThread();
-    public void updateDestination(int x, int y, int w, int h);
 }
