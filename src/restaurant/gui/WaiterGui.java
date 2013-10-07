@@ -23,6 +23,10 @@ public class WaiterGui extends JPanel implements Gui {
     
     private ImageIcon i = new ImageIcon("image/waiter.png");
     private Image image = i.getImage();
+    
+	private enum Command {noCommand, GoToSeat};
+	private Command command=Command.noCommand;
+    
     public WaiterGui(WaiterAgent agent) {
         this.agent = agent;
     }
@@ -36,6 +40,12 @@ public class WaiterGui extends JPanel implements Gui {
             yPos++;
         else if (yPos > yDestination)
             yPos--;
+        if (yPos == yDestination && xPos == xDestination && command == Command.GoToSeat){
+        	System.out.println("release semaphore");
+        	command = Command.noCommand;
+            show_choice = false;
+        	agent.releaseSemaphore();
+        }
     }
 
     public void draw(Graphics2D g) {
@@ -62,8 +72,7 @@ public class WaiterGui extends JPanel implements Gui {
 		}
     	xDestination = xTable + xGap;
         yDestination = yTable - yGap;
-        while (!(xPos == xDestination && yPos == yDestination)) {
-        }
+        command = Command.GoToSeat;
     }
     
     public void DoBringFood(CustomerAgent customer, int table_number, String food) {
@@ -81,16 +90,13 @@ public class WaiterGui extends JPanel implements Gui {
 		show_choice = true;
     	xDestination = xTable + xGap;
         yDestination = yTable - yGap;
-        while (!(xPos == xDestination && yPos == yDestination)) {
-        }
-        show_choice = false;
+        command = Command.GoToSeat;
     }
     
     public void DoGoToCook() {
     	xDestination = xCook;
         yDestination = yCook - yGap;
-        while (!(xPos == xDestination && yPos == yDestination)) {
-        }
+        command = Command.GoToSeat;
     }
 
     public void DoLeaveCustomer() {
@@ -101,8 +107,7 @@ public class WaiterGui extends JPanel implements Gui {
     public void DoFetchCustomer() {
         xDestination = -xGap;
         yDestination = -yGap;
-        while (!(xPos == xDestination && yPos == yDestination)) {
-        }
+        command = Command.GoToSeat;
     }
 
     public int getXPos() {

@@ -1,21 +1,21 @@
 package restaurant.gui;
 
-import restaurant.HostAgent;
+import restaurant.CashierAgent;
 
 import java.awt.*;
 import javax.swing.*;
 
-public class HostGui extends JPanel implements Gui {
+public class CashierGui extends JPanel implements Gui {
 
-    private HostAgent agent = null;
+    private CashierAgent agent = null;
 
-    private int xPos = 50, yPos = 20;//default waiter position
+    private int xPos = 300, yPos = 30;//default waiter position
     public static int xGap = 40;
     public static int yGap = 40;
     
     private ImageIcon i = new ImageIcon("image/host.png");
     private Image image = i.getImage();
-    public HostGui(HostAgent agent) {
+    public CashierGui(CashierAgent agent) {
         this.agent = agent;
     }
 
@@ -23,7 +23,7 @@ public class HostGui extends JPanel implements Gui {
     }
 
     public void draw(Graphics2D g) {
-    	//g.drawImage(image, xPos, yPos, xGap, yGap, this);
+    	g.drawImage(image, xPos, yPos, xGap, yGap, this);
     }
 
     public boolean isPresent() {

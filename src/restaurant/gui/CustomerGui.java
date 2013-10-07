@@ -17,7 +17,7 @@ public class CustomerGui extends JPanel implements Gui{
 
 	private int xPos, yPos;
 	private int xDestination, yDestination;
-	private enum Command {noCommand, GoToSeat, LeaveRestaurant};
+	private enum Command {noCommand, GoToSeat, LeaveRestaurant, GoToCashier};
 	private Command command=Command.noCommand;
 
 	public static final int xTable1 = 200, xTable2 = 300, xTable3 = 100;
@@ -55,13 +55,16 @@ public class CustomerGui extends JPanel implements Gui{
 			yPos--;
 
 		if (xPos == xDestination && yPos == yDestination) {
-			if (command==Command.GoToSeat) agent.msgAnimationFinishedGoToSeat();
+			if (command==Command.GoToSeat)
+				agent.msgAnimationFinishedGoToSeat();
 			else if (command==Command.LeaveRestaurant) {
 				agent.msgAnimationFinishedLeaveRestaurant();
 				System.out.println("about to call gui.setCustomerEnabled(agent);");
 				isHungry = false;
 				gui.setCustomerEnabled(agent);
 			}
+			else if (command==Command.GoToCashier) 
+				agent.msgAnimationFinishedGoToCashier();
 			command=Command.noCommand;
 		}
 	}
@@ -104,6 +107,13 @@ public class CustomerGui extends JPanel implements Gui{
 		}
 		command = Command.GoToSeat;
 	}
+	
+	public void DoGoToCashier() {
+		show_choice = false;
+		xDestination = 300;
+		yDestination = 70;
+		command = Command.GoToCashier;
+	}
 
 	public void showOrderFood(String choice){
 		this.choice = choice + "?";
@@ -116,7 +126,6 @@ public class CustomerGui extends JPanel implements Gui{
 	}
 	
 	public void DoExitRestaurant() {
-		show_choice = false;
 		xDestination = OriginX;
 		yDestination = OriginY;
 		command = Command.LeaveRestaurant;

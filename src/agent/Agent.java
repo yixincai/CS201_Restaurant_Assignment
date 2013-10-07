@@ -9,6 +9,8 @@ import java.util.concurrent.*;
  */
 public abstract class Agent {
     Semaphore stateChange = new Semaphore(1, true);//binary semaphore, fair
+    Semaphore statePause = new Semaphore(0, true);
+    boolean paused = false;
     private AgentThread agentThread;
 
     protected Agent() {
@@ -94,18 +96,12 @@ public abstract class Agent {
     }
     
     public void pauseThread(){
-        if (agentThread != null) {
-        	System.out.println("real pausing");
-            agentThread.pauseAgent();
-            agentThread = null;
-        }	
+    	paused = true;
     }
 
     public void resumeThread(){
-        if (agentThread == null) {
-            agentThread = new AgentThread(getName());
-            agentThread.start();
-        }
+    	paused = false;
+    	statePause.release();
     }
     /**
      * Agent scheduler thread, calls respondToStateChange() whenever a state
@@ -118,28 +114,35 @@ public abstract class Agent {
             super(name);
         }
         
-        public void pauseAgent() {
-            goOn = false;
-        }
-        
         public void run() {
             goOn = true;
 
             while (goOn) {
-                try {
-                    // The agent sleeps here until someone calls, stateChanged(),
-                    // which causes a call to stateChange.give(), which wakes up agent.
-                    stateChange.acquire();
-                    //The next while clause is the key to the control flow.
-                    //When the agent wakes up it will call respondToStateChange()
-                    //repeatedly until it returns FALSE.
-                    //You will see that pickAndExecuteAnAction() is the agent scheduler.
-                    while (pickAndExecuteAnAction()) ;
-                } catch (InterruptedException e) {
-                    // no action - expected when stopping or when deadline changed
-                } catch (Exception e) {
-                    print("Unexpected exception caught in Agent thread:", e);
-                }
+            	if(!paused){
+	                try {
+	                    // The agent sleeps here until someone calls, stateChanged(),
+	                    // which causes a call to stateChange.give(), which wakes up agent.
+	                    stateChange.acquire();
+	                    //The next while clause is the key to the control flow.
+	                    //When the agent wakes up it will call respondToStateChange()
+	                    //repeatedly until it returns FALSE.
+	                    //You will see that pickAndExecuteAnAction() is the agent scheduler.
+	                    while (pickAndExecuteAnAction()) ;
+	                } catch (InterruptedException e) {
+	                    // no action - expected when stopping or when deadline changed
+	                } catch (Exception e) {
+	                    print("Unexpected exception caught in Agent thread:", e);
+	                }
+            	}
+            	else{
+            		try{
+            			statePause.acquire();
+            		} catch (InterruptedException e) {
+	                    // no action - expected when stopping or when deadline changed
+	                } catch (Exception e) {
+	                    print("Unexpected exception caught in Agent thread:", e);
+	                }
+            	}
             }
         }
 

@@ -8,17 +8,20 @@ import java.util.*;
 
 public class CookAgent extends Agent{
     private String name = "TheBestCook";
+    public List<MarketAgent> markets = new ArrayList<MarketAgent>();
+    int market_index = 0;
 	public List<Order> orders = Collections.synchronizedList(new ArrayList<Order>());
+	public Map<String, Food> inventory = new HashMap<String, Food>();
 	Timer timer = new Timer();
-	private Map<String, Long> cook_time= new HashMap<String, Long>();
 	public CookGui cookGui = null;
+	boolean lowInFood = false;
 	
 	public CookAgent() {
 		super();
-		cook_time.put("Steak", (long)5000);
-		cook_time.put("Chicken", (long)4000);
-		cook_time.put("Salad", (long)2000);
-		cook_time.put("Pizza", (long)3000);
+		inventory.put("Steak", new Food("Steak", 5000, 0, 2, 10));
+		inventory.put("Chicken", new Food("Chicken", 4000, 0, 2, 10));
+		inventory.put("Salad", new Food("Salad", 1000, 0, 2, 10));
+		inventory.put("Pizza", new Food("Pizza", 3000, 0, 2, 10));
 	}
 
 	public void setGui(CookGui gui){
@@ -27,6 +30,10 @@ public class CookAgent extends Agent{
 	
 	public String getName() {
 		return name;
+	}
+
+	public void addMarket(MarketAgent market) {
+		markets.add(market);
 	}
 	
 	// Messages
@@ -40,19 +47,35 @@ public class CookAgent extends Agent{
 		o.state = Order.OrderState.Cooked;
 		stateChanged();
 	}
+	
+	public void msgOrderFulfillment(Map<String, Integer> order){
+		print("Market response received");
+		inventory.get("Steak").amount += order.get("Steak");
+		inventory.get("Chicken").amount += order.get("Chicken");
+		inventory.get("Pizza").amount += order.get("Pizza");
+		inventory.get("Salad").amount += order.get("Salad");
+	}
 	/**
 	 * Scheduler.  Determine what action is called for, and do it.
 	 */
 	protected boolean pickAndExecuteAnAction() {
-		for (Order order : orders){
-			if (order.state == Order.OrderState.NotCooked){
-				cookOrder(order);
-				return true;
-			}
+		if(lowInFood){
+			if (market_index < markets.size() - 1)
+				market_index++;
+			else
+				market_index = 0;
+			lowInFood = false;
+			askForSupply();
 		}
 		for (Order order : orders){
 			if (order.state == Order.OrderState.Cooked){
 				returnOrder(order);
+				return true;
+			}
+		}		
+		for (Order order : orders){
+			if (order.state == Order.OrderState.NotCooked){
+				cookOrder(order);
 				return true;
 			}
 		}
@@ -64,11 +87,44 @@ public class CookAgent extends Agent{
 	}
 
 	// Actions
+	
+	private void askForSupply(){
+		Do("Buy food from market.");
+		Map<String, Integer> order = new HashMap<String, Integer>();
+		if (inventory.get("Steak").amount <= inventory.get("Steak").threshold)
+			order.put("Steak", inventory.get("Steak").capacity - inventory.get("Steak").amount);
+		else
+			order.put("Steak", 0);
+		if (inventory.get("Chicken").amount <= inventory.get("Chicken").threshold)
+			order.put("Chicken", inventory.get("Chicken").capacity - inventory.get("Chicken").amount);
+		else
+			order.put("Chicken", 0);
+		if (inventory.get("Salad").amount <= inventory.get("Salad").threshold)
+			order.put("Salad", inventory.get("Salad").capacity - inventory.get("Salad").amount);
+		else
+			order.put("Salad", 0);
+		if (inventory.get("Pizza").amount <= inventory.get("Pizza").threshold)
+			order.put("Pizza", inventory.get("Pizza").capacity - inventory.get("Pizza").amount);
+		else
+			order.put("Pizza", 0);
+		markets.get(market_index).msgHereIsTheOrder(order);
+	}
 
 	private void cookOrder(final Order order) {
+		Food f = inventory.get(order.choice);
+		if (f.amount < f.threshold){
+			lowInFood = true;
+		}		
+		if (f.amount == 0){
+			Do(f.choice + " is running out");
+			order.w.msgFoodRunsOut(order.choice, order.tableNumber);
+			orders.remove(order);
+			return;
+		}
 		DoCooking(order.choice);
 		order.state = Order.OrderState.Cooking;
-		final long time = cook_time.get(order.choice);
+		final long time = f.cookingTime;
+		f.amount--;
 		timer.schedule(new TimerTask() {
 			public void run() {
 				print("Cooking " + order.choice + " with time of " + time);
@@ -85,8 +141,6 @@ public class CookAgent extends Agent{
 	
 	// The animation DoXYZ() routines
 	private void DoCooking(String choice) {
-		//Notice how we print "customer" directly. It's toString method will do it.
-		//Same with "table"
 		print("Cooking " + choice);
 		cookGui.DoCookFood(); 
 	}
@@ -106,6 +160,23 @@ public class CookAgent extends Agent{
 			this.tableNumber = tableNumber;
 			this.w = w;
 			this.state = state;
+		}
+	}
+	
+	public static class Food {
+		String choice;
+		long cookingTime;
+		int amount;
+		int threshold;
+		int capacity;
+		boolean ordered = false;
+		
+		Food(String choice, long time, int amount, int threshold, int capacity){
+			this.choice = choice;
+			this.cookingTime = time;
+			this.amount = amount;
+			this.threshold = threshold;
+			this.capacity = capacity;
 		}
 	}
 }

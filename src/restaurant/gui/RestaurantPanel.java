@@ -1,11 +1,10 @@
 package restaurant.gui;
 
-import restaurant.CustomerAgent;
-import restaurant.HostAgent;
-import restaurant.WaiterAgent;
-import restaurant.CookAgent;
+import restaurant.*;
+
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Vector;
@@ -14,11 +13,14 @@ import java.util.Vector;
  * Panel in frame that contains all the restaurant information,
  * including host, cook, waiters, and customers.
  */
-public class RestaurantPanel extends JPanel {
+public class RestaurantPanel extends JPanel{
 
     //Host, cook, waiters and customers
     private HostAgent host = new HostAgent("Sarah");
     private HostGui hostGui = new HostGui(host);
+    
+    private CashierAgent cashier = new CashierAgent();
+    private CashierGui cashierGui = new CashierGui(cashier);
 
     private WaiterAgent waiter = new WaiterAgent("Mike");
     private WaiterGui waiterGui = new WaiterGui(waiter);
@@ -26,12 +28,14 @@ public class RestaurantPanel extends JPanel {
     private CookAgent cook = new CookAgent();
     private CookGui cookGui = new CookGui(cook);
     
+    private MarketAgent market1 = new MarketAgent("Market1"), market2 = new MarketAgent("Market2"), 
+    		market3 = new MarketAgent("Market3"), market4 = new MarketAgent("Market4");
+    
     private Vector<CustomerAgent> customers = new Vector<CustomerAgent>();
 
     private JPanel restLabel = new JPanel();
     private ListPanel customerPanel = new ListPanel(this, "Customers");
     private JPanel group = new JPanel();
-
     private RestaurantGui gui; //reference to main gui
 
     public RestaurantPanel(RestaurantGui gui) {
@@ -39,10 +43,20 @@ public class RestaurantPanel extends JPanel {
         host.setGui(hostGui);
         waiter.setGui(waiterGui);
         cook.setGui(cookGui);
+        cashier.setGui(cashierGui);
         
         host.addWaiter(waiter);
         waiter.setCook(cook);
         waiter.setHost(host);
+        waiter.setCashier(cashier);
+        cook.addMarket(market1);
+        market1.setCook(cook);
+        //cook.addMarket(market2);
+        market2.setCook(cook);
+        //cook.addMarket(market3);
+        market3.setCook(cook);
+        //cook.addMarket(market4);
+        market4.setCook(cook);
         
         gui.animationPanel.addGui(hostGui);
         host.startThread();
@@ -51,7 +65,15 @@ public class RestaurantPanel extends JPanel {
         waiter.startThread();
         
         gui.animationPanel.addGui(cookGui);
-        cook.startThread();        
+        cook.startThread();
+        
+        gui.animationPanel.addGui(cashierGui);
+        cashier.startThread();
+        
+        market1.startThread();
+        market2.startThread();
+        market3.startThread();
+        market4.startThread();
         
         setLayout(new GridLayout(1, 2, 20, 20));
         group.setLayout(new GridLayout(1, 2, 10, 10));
@@ -62,6 +84,7 @@ public class RestaurantPanel extends JPanel {
         add(restLabel);
         add(group);
     }
+    
 
     /**
      * Sets up the restaurant label that includes the menu,
@@ -79,7 +102,17 @@ public class RestaurantPanel extends JPanel {
         restLabel.add(new JLabel("               "), BorderLayout.EAST);
         restLabel.add(new JLabel("               "), BorderLayout.WEST);
     }
+    
+    public void AskForBreak(){
+    	waiter.msgAskForBreak();
+    	System.out.println("Got break msg");
+    }
 
+    public void AskToComeBack(){
+    	waiter.msgAskToComeBack();
+    	System.out.println("Got back msg");
+    }    
+    
     /**
      * When a customer or waiter is clicked, this function calls
      * updatedInfoPanel() from the main gui so that person's information

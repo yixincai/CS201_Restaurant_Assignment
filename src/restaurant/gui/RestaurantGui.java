@@ -22,7 +22,7 @@ public class RestaurantGui extends JFrame implements ActionListener{
      * 2) the infoPanel about the clicked Customer (created just below)
      */    
     private RestaurantPanel restPanel = new RestaurantPanel(this);
-    
+    private JButton breakB = new JButton("Break");
     /* infoPanel holds information about the clicked customer, if there is one*/
     private JPanel infoPanel;
     private JLabel infoLabel; //part of infoPanel
@@ -90,6 +90,9 @@ public class RestaurantGui extends JFrame implements ActionListener{
         pauseCB.addActionListener(this);
         add(pauseCB);
         
+        breakB.addActionListener(this);
+        add(breakB);
+        
         Dimension animationDim = new Dimension(WINDOWX, (int) (WINDOWY * .5));
         animationPanel.setPreferredSize(animationDim);
         animationPanel.setMinimumSize(animationDim);
@@ -152,6 +155,16 @@ public class RestaurantGui extends JFrame implements ActionListener{
         		restPanel.addPerson("Waiters", waiterNameTF.getText());
         	}
         } 
+        else if (e.getSource() == breakB && breakB.getText().compareTo("Break") == 0) {
+        	restPanel.AskForBreak();
+        	breakB.setText("Back");
+        	return;
+        }
+        else if (e.getSource() == breakB && breakB.getText().compareTo("Back") == 0) {
+        	restPanel.AskToComeBack();
+        	breakB.setText("Break");
+        	return;
+        }
     }
     
     /**

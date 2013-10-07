@@ -17,9 +17,10 @@ public class WaiterAgent extends Agent {
 	private List<MyCustomer> customers = Collections.synchronizedList(new ArrayList<MyCustomer>());
 	public CookAgent cook = null;
 	public HostAgent host = null;
+	public CashierAgent cashier = null;
 	public WaiterGui waiterGui = null;
 	private Semaphore atTable = new Semaphore(0,true);
-	public Menu menu = new Menu();
+	boolean breakRequest = false, breakGranted = false, backRequest = false;
 	
 	private String name;
 
@@ -40,6 +41,15 @@ public class WaiterAgent extends Agent {
 		this.cook = c;
 	}
 
+	public void setCashier(CashierAgent c){
+		this.cashier = c;
+	}
+	
+	public void releaseSemaphore(){
+		atTable.release();
+		stateChanged();
+	}
+	
 	// Messages
 
 	public void msgSitAtTable(CustomerAgent cust, int tablenumber) {
@@ -49,7 +59,7 @@ public class WaiterAgent extends Agent {
 
 	public void msgReadyToOrder(CustomerAgent cust) {
 		for (MyCustomer c: customers) {
-			if (c.c == cust && c.state == MyCustomer.CustomerState.seated) {
+			if (c.c == cust) {
 				c.state = MyCustomer.CustomerState.readyToOrder;
 				stateChanged();
 			}
@@ -58,7 +68,7 @@ public class WaiterAgent extends Agent {
 
 	public void msgHereIsTheChoice(CustomerAgent cust, String choice) {
 		for (MyCustomer c: customers) {
-			if (c.c == cust && c.state == MyCustomer.CustomerState.aboutToGiveOrder) {
+			if (c.c == cust) {
 				c.choice = choice;
 				c.state = MyCustomer.CustomerState.orderGiven;
 				atTable.release();
@@ -70,8 +80,18 @@ public class WaiterAgent extends Agent {
 	
 	public void msgOrderIsReady(String choice, int tableNumber) {
 		for (MyCustomer c: customers) {
-			if (c.tableNumber == tableNumber && c.state == MyCustomer.CustomerState.orderProcessed) {
+			if (c.tableNumber == tableNumber) {
 				c.state = MyCustomer.CustomerState.orderReady;
+				stateChanged();
+			}
+		}
+	}
+	
+	public void msgFoodRunsOut(String choice, int tableNumber) {
+		for (MyCustomer c: customers) {
+			if (c.tableNumber == tableNumber) {
+				Do("Got msg " + choice + " is running out.");
+				c.state = MyCustomer.CustomerState.noFood;
 				stateChanged();
 			}
 		}
@@ -79,19 +99,83 @@ public class WaiterAgent extends Agent {
 	
 	public void msgDoneEating(CustomerAgent cust) {
 		for (MyCustomer c: customers) {
-			if (c.c == cust && c.state == MyCustomer.CustomerState.eating) {
-				c.state = MyCustomer.CustomerState.finished;
+			if (c.c == cust) {
+				c.state = MyCustomer.CustomerState.finishedEating;
 				stateChanged();
 			}
 		}
-	}	
+	}
+	
+	public void msgHereIsTheCheck(double money, CustomerAgent cust){
+		for (MyCustomer c: customers) {
+			if (c.c == cust) {
+				c.state = MyCustomer.CustomerState.checkComputed;
+				c.check = money;
+				stateChanged();
+			}
+		}
+	}
+	
+	public void msgLeavingRestaurant(CustomerAgent cust){
+		for (MyCustomer c: customers) {
+			if (c.c == cust) {
+				c.state = MyCustomer.CustomerState.leaving;
+				stateChanged();
+			}
+		}
+	}
+	
+	public void msgAskForBreak(){
+		breakRequest = true;
+		stateChanged();
+	}
 
+	public void msgBreakGranted(){
+		breakGranted = true;
+		stateChanged();
+	}
+	
+	public void msgAskToComeBack(){
+		backRequest = true;
+		this.resumeThread();
+		stateChanged();
+	}
+	
 	/**
 	 * Scheduler.  Determine what action is called for, and do it.
 	 */
 	protected boolean pickAndExecuteAnAction() {
+		if (breakRequest){
+			Do("Tell host to break");
+			host.msgWantToBreak(this);
+			breakRequest = false;
+			return true;
+		}
+		if (backRequest){
+			Do("Tell host I'm coming back");
+			host.msgWantToComeBack(this);
+			backRequest = false;
+			return true;
+		}
+		if (customers.isEmpty() && breakGranted){
+			breakGranted = false;
+			this.pauseThread();
+			return true;
+		}
 		for (MyCustomer customer : customers) {
-			if (customer.state == MyCustomer.CustomerState.finished) {
+			if (customer.state == MyCustomer.CustomerState.finishedEating) {
+				computeBill(customer);
+				return true;
+			}
+		}
+		for (MyCustomer customer : customers) {
+			if (customer.state == MyCustomer.CustomerState.checkComputed) {
+				giveCheck(customer);
+				return true;
+			}
+		}
+		for (MyCustomer customer : customers) {
+			if (customer.state == MyCustomer.CustomerState.leaving) {
 				clearCustomer(customer);
 				return true;
 			}
@@ -108,6 +192,12 @@ public class WaiterAgent extends Agent {
 				return true;
 			}
 		}
+		for (MyCustomer customer : customers) {
+			if (customer.state == MyCustomer.CustomerState.noFood){
+				giveNewMenu(customer);
+				return true;
+			}
+		}		
 		for (MyCustomer customer : customers) {
 			if (customer.state == MyCustomer.CustomerState.orderGiven) {
 				processOrder(customer);
@@ -131,13 +221,18 @@ public class WaiterAgent extends Agent {
 
 	private void seatCustomer(MyCustomer customer) {
 		waiterGui.DoFetchCustomer();
-		customer.state = MyCustomer.CustomerState.seated;
-		customer.c.msgFollowMe(this, customer.tableNumber, menu);
+		try {
+			atTable.acquire();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		customer.state = MyCustomer.CustomerState.none;
+		customer.c.msgFollowMe(this, customer.tableNumber, new Menu());
 		DoSeatCustomer(customer.c, customer.tableNumber);
 	}
 
 	private void askForChoice(MyCustomer customer){
-		customer.state = MyCustomer.CustomerState.aboutToGiveOrder;	
+		customer.state = MyCustomer.CustomerState.none;	
 		DoGoToCustomer(customer.c, customer.tableNumber);
 		customer.c.msgWhatWouldYouLike();
 		try {
@@ -146,10 +241,19 @@ public class WaiterAgent extends Agent {
 			e.printStackTrace();
 		}
 	}
+	
+	private void giveNewMenu(MyCustomer customer){
+		Do("give new menu");
+		DoGoToCustomer(customer.c, customer.tableNumber);
+		customer.state = MyCustomer.CustomerState.none;
+		Menu m = new Menu();
+		m.menu.remove(customer.choice);
+		customer.c.msgNoFood(m);
+	}
 
 	private void processOrder(MyCustomer customer){
 		Do("Process order");
-		customer.state = MyCustomer.CustomerState.orderProcessed;
+		customer.state = MyCustomer.CustomerState.none;
 		DoGoToCook();
 		cook.msgHereIsTheOrder(this, customer.choice, customer.tableNumber);
 	}
@@ -157,9 +261,21 @@ public class WaiterAgent extends Agent {
 	private void giveOrderToCustomer(MyCustomer customer){
 		DoGoToCook();
 		Do("Give order to customer");
-		customer.state = MyCustomer.CustomerState.eating;
+		customer.state = MyCustomer.CustomerState.none;
 		DoGiveFoodToCustomer(customer.c, customer.tableNumber, customer.choice);
 		customer.c.msgHereIsYourFood(customer.choice);
+	}
+	
+	private void computeBill(MyCustomer customer){
+		Do("Ask Cashier to compute bill");
+		cashier.msgComputeBill(this, customer.c, customer.choice);
+		customer.state = MyCustomer.CustomerState.none;
+	}
+	
+	private void giveCheck(MyCustomer customer){
+		Do("Give Customer the bill");
+		customer.c.msgHereIsTheCheck(customer.check, cashier);
+		customer.state = MyCustomer.CustomerState.none;
 	}
 
 	private void clearCustomer(MyCustomer customer){
@@ -171,22 +287,43 @@ public class WaiterAgent extends Agent {
 	private void DoSeatCustomer(CustomerAgent customer, int table){
 		print("Seating " + customer + " at " + table);
 		waiterGui.DoGoToTable(customer, table);
+		try {
+			atTable.acquire();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		waiterGui.DoLeaveCustomer();
 	}
 	
 	private void DoGoToCustomer(CustomerAgent customer, int table){
-		print("Seating " + customer + " at " + table);
+		print("Going to " + customer + " at " + table);
 		waiterGui.DoGoToTable(customer, table);
+		try {
+			atTable.acquire();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		waiterGui.DoLeaveCustomer();
 	}
 	
 	private void DoGoToCook(){
 		print("Going to cook");
 		waiterGui.DoGoToCook();
+		try {
+			atTable.acquire();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	private void DoGiveFoodToCustomer(CustomerAgent customer, int table, String food){
-		print("Seating " + customer + " at " + table);
+		print("Giving food to " + customer + " at " + table);
 		waiterGui.DoBringFood(customer, table, food);
+		try {
+			atTable.acquire();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		waiterGui.DoLeaveCustomer();
 	}
 	
@@ -204,9 +341,10 @@ public class WaiterAgent extends Agent {
 		CustomerAgent c;
 		int tableNumber;
 		String choice = "";
+		double check = 0;
 		public enum CustomerState
-		{none, waiting, seated, readyToOrder, aboutToGiveOrder, 
-			orderGiven, orderProcessed, orderReady, eating, finished};
+		{none, waiting, readyToOrder, 
+			orderGiven, orderReady, noFood, finishedEating, checkComputed, leaving};
 		private CustomerState state = CustomerState.none;
 		
 		MyCustomer(CustomerAgent c, int tableNumber, CustomerState s) {

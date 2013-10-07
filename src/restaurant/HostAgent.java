@@ -1,6 +1,7 @@
 package restaurant;
 
 import agent.Agent;
+import restaurant.WaiterAgent;
 import restaurant.gui.HostGui;
 
 import java.util.*;
@@ -8,17 +9,15 @@ import java.util.*;
 /**
  * Restaurant Host Agent
  */
-//We only have 2 types of agents in this prototype. A customer and an agent that
-//does all the rest. Rather than calling the other agent a waiter, we called him
-//the HostAgent. A Host is the manager of a restaurant who sees that all
-//is proceeded as he wishes.
+
 public class HostAgent extends Agent {
 	static final int NTABLES = 3;//a global for the number of tables.
 	//Notice that we implement waitingCustomers using ArrayList, but type it
 	//with List semantics.
 	public List<CustomerAgent> waitingCustomers = Collections.synchronizedList(new ArrayList<CustomerAgent>());
 	public Collection<Table> tables;
-	public List<WaiterAgent> waiters = new ArrayList<WaiterAgent>(); 
+	public List<MyWaiter> waiters = new ArrayList<MyWaiter>(); 
+	boolean wantToBreak= false;
 	//note that tables is typed with Collection semantics.
 	//Later we will see how it is implemented
 
@@ -39,7 +38,7 @@ public class HostAgent extends Agent {
 	}
 	
 	public void addWaiter(WaiterAgent w){
-		waiters.add(w);
+		waiters.add(new MyWaiter(w));
 	}
 
 	public String getMaitreDName() {
@@ -50,13 +49,6 @@ public class HostAgent extends Agent {
 		return name;
 	}
 
-	public List getWaitingCustomers() {
-		return waitingCustomers;
-	}
-
-	public Collection getTables() {
-		return tables;
-	}
 	// Messages
 
 	public void msgIWantFood(CustomerAgent cust) {
@@ -74,16 +66,36 @@ public class HostAgent extends Agent {
 			}
 		}
 	}
+	
+	public void msgWantToBreak(WaiterAgent w){
+		for (MyWaiter waiter : waiters) {
+			if (waiter.w == w) {
+				print(w + " want to break");
+				waiter.state = MyWaiter.WaiterState.askingForBreak;
+				stateChanged();
+			}
+		}
+	}
+	
+	public void msgWantToComeBack(WaiterAgent w){
+		waiters.add(new MyWaiter(w));
+		stateChanged();
+	}
 
 	/**
 	 * Scheduler.  Determine what action is called for, and do it.
 	 */
 	protected boolean pickAndExecuteAnAction() {
-		/* Think of this next rule as:
-            Does there exist a table and customer,
-            so that table is unoccupied and customer is waiting.
-            If so seat him at the table.
-		 */
+
+		for (MyWaiter waiter : waiters) {
+			if (waiter.state == MyWaiter.WaiterState.askingForBreak && waiters.size() > 1) {
+				Do("Break granted");
+				waiter.w.msgBreakGranted();
+				waiters.remove(waiter);
+				return true;
+			}
+		}
+
 		for (Table table : tables) {
 			if (!table.isOccupied()) {
 				if (!waitingCustomers.isEmpty()) {
@@ -106,8 +118,8 @@ public class HostAgent extends Agent {
 			waiterNumber++;
 		else
 			waiterNumber = 0;
-		Do("Telling waiter " + waiterNumber + " " + waiters.get(waiterNumber).getName() + " to seat customer");
-		waiters.get(waiterNumber).msgSitAtTable(customer, table.tableNumber);
+		Do("Telling waiter " + waiterNumber + " " + waiters.get(waiterNumber).w.getName() + " to seat customer");
+		waiters.get(waiterNumber).w.msgSitAtTable(customer, table.tableNumber);
 		table.setOccupant(customer);
 		waitingCustomers.remove(customer);
 		stateChanged();
@@ -149,6 +161,17 @@ public class HostAgent extends Agent {
 
 		public String toString() {
 			return "table " + tableNumber;
+		}
+	}
+	
+	public static class MyWaiter{
+		WaiterAgent w;
+		public enum WaiterState
+		{none, askingForBreak};
+		private WaiterState state = WaiterState.none;
+		
+		MyWaiter(WaiterAgent w){
+			this.w = w;
 		}
 	}
 }
