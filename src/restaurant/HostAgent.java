@@ -40,6 +40,7 @@ public class HostAgent extends Agent {
 	
 	public void addWaiter(WaiterAgent w){
 		waiters.add(new MyWaiter(w));
+		stateChanged();
 	}
 
 	public String getMaitreDName() {
@@ -121,6 +122,8 @@ public class HostAgent extends Agent {
 				if (!table.isOccupied()) {
 					hasEmptyTable = true;
 					for (MyCustomer customer : waitingCustomers) {
+						if (waiters.size() == 0)
+							return false;
 						if (customer.state == MyCustomer.CustomerState.waiting ||
 								customer.state == MyCustomer.CustomerState.staying) {
 							seatCustomer(customer.customer, table);

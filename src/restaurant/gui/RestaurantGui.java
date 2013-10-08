@@ -1,7 +1,7 @@
 package restaurant.gui;
 
 import restaurant.CustomerAgent;
-
+import restaurant.WaiterAgent;
 import javax.swing.*;
 
 import java.awt.*;
@@ -22,19 +22,21 @@ public class RestaurantGui extends JFrame implements ActionListener{
      * 2) the infoPanel about the clicked Customer (created just below)
      */    
     private RestaurantPanel restPanel = new RestaurantPanel(this);
-    private JButton breakB = new JButton("Break");
     /* infoPanel holds information about the clicked customer, if there is one*/
     private JPanel infoPanel;
     private JLabel infoLabel; //part of infoPanel
-    private JCheckBox stateCB;//part of infoLabel
+    private JCheckBox stateCB = new JCheckBox();;//part of infoLabel
     private Object currentPerson;/* Holds the agent that the info is about.
     								Seems like a hack */
+    //private JPanel waiterInfoPanel;
+    //private JLabel waiterInfoLabel; //part of infoPanel
+    private JButton waiterStateB;//part of infoLabel
     
     private JCheckBox pauseCB;//part of infoLabel
     
     private JPanel waiterPanel;
-    private JTextField waiterNameTF = new JTextField(15);
-    private JButton addWaiterB = new JButton("AddWaiter");
+    //private JTextField waiterNameTF = new JTextField(15);
+    //private JButton addWaiterB = new JButton("AddWaiter");
     /**
      * Constructor for RestaurantGui class.
      * Sets up all the gui components.
@@ -61,37 +63,37 @@ public class RestaurantGui extends JFrame implements ActionListener{
         infoPanel.setMinimumSize(infoDim);
         infoPanel.setMaximumSize(infoDim);
         infoPanel.setBorder(BorderFactory.createTitledBorder("Information"));
-
-        stateCB = new JCheckBox();
+        infoPanel.setLayout(new GridLayout(1, 2, 30, 0));
+        
+        /*waiterInfoPanel = new JPanel();
+        waiterInfoPanel.setPreferredSize(infoDim);
+        waiterInfoPanel.setMinimumSize(infoDim);
+        waiterInfoPanel.setMaximumSize(infoDim);
+        waiterInfoPanel.setBorder(BorderFactory.createTitledBorder("Waiter Information"));
+        waiterInfoPanel.setLayout(new GridLayout(1, 2, 30, 0));
+        */
         stateCB.setVisible(false);
         stateCB.addActionListener(this);
 
-        infoPanel.setLayout(new GridLayout(1, 2, 30, 0));
+        waiterStateB = new JButton();
+        waiterStateB.setVisible(false);
+        waiterStateB.addActionListener(this);
         
         infoLabel = new JLabel(); 
-        infoLabel.setText("<html><pre><i>Click Add to make customers</i></pre></html>");
+        infoLabel.setText("<html><pre><i>Click Add to make customers and waiters</i></pre></html>");
         infoPanel.add(infoLabel);
         infoPanel.add(stateCB);
         add(infoPanel);
 
-        Dimension waiterDim = new Dimension(WINDOWX, (int) (WINDOWY * .05));
-        waiterPanel = new JPanel();
-        waiterPanel.setPreferredSize(waiterDim);
-        waiterPanel.setMinimumSize(waiterDim);
-        waiterPanel.setMaximumSize(waiterDim);
-        waiterPanel.setLayout(new FlowLayout());
-        waiterPanel.add(waiterNameTF);
-        addWaiterB.addActionListener(this);
-        waiterPanel.add(addWaiterB);
-        add(waiterPanel);
+        /*waiterInfoLabel = new JLabel(); 
+        waiterInfoLabel.setText("<html><pre><i>Click a waiter to show waiters</i></pre></html>");
+        waiterInfoPanel.add(waiterInfoLabel);*/
+        infoPanel.add(waiterStateB);
         
         pauseCB = new JCheckBox("pause");
         pauseCB.setVisible(true);
         pauseCB.addActionListener(this);
         add(pauseCB);
-        
-        breakB.addActionListener(this);
-        add(breakB);
         
         Dimension animationDim = new Dimension(WINDOWX, (int) (WINDOWY * .5));
         animationPanel.setPreferredSize(animationDim);
@@ -106,10 +108,12 @@ public class RestaurantGui extends JFrame implements ActionListener{
      * @param person customer (or waiter) object
      */
     public void updateInfoPanel(Object person) {
-        stateCB.setVisible(true);
+    	stateCB.setVisible(false);
+    	waiterStateB.setVisible(false);
         currentPerson = person;
 
         if (person instanceof CustomerAgent) {
+        	stateCB.setVisible(true);
             CustomerAgent customer = (CustomerAgent) person;
             stateCB.setText("Hungry?");
           //Should checkmark be there? 
@@ -118,7 +122,22 @@ public class RestaurantGui extends JFrame implements ActionListener{
             stateCB.setEnabled(!customer.getGui().isHungry());
           // Hack. Should ask customerGui
             infoLabel.setText(
-               "<html><pre>     Name: " + customer.getName() + " </pre></html>");
+               "<html><pre>     Customer: " + customer.getName() + " </pre></html>");
+        }
+        else if (person instanceof WaiterAgent) {
+        	waiterStateB.setVisible(true);
+            WaiterAgent waiter = (WaiterAgent) person;
+            //waiterStateB.setText("Break?");
+          //Should checkmark be there?
+            if (waiter.getBreakStatus()){
+            	waiterStateB.setText("Back");
+            }
+            else
+            	waiterStateB.setText("Break");
+          //Is customer hungry? Hack. Should ask customerGui
+          // Hack. Should ask customerGui
+            infoLabel.setText(
+               "<html><pre>     Waiter: " + waiter.getName() + " </pre></html>");
         }
         infoPanel.validate();
     }
@@ -135,6 +154,20 @@ public class RestaurantGui extends JFrame implements ActionListener{
                 stateCB.setEnabled(false);
             }
         }
+        else if (e.getSource() == waiterStateB && waiterStateB.getText().equals("Break")) {
+            if (currentPerson instanceof WaiterAgent) {
+                WaiterAgent w = (WaiterAgent) currentPerson;
+                restPanel.AskForBreak(w);
+                waiterStateB.setText("Back");
+            }
+        }
+        else if (e.getSource() == waiterStateB && waiterStateB.getText().equals("Back")) {
+            if (currentPerson instanceof WaiterAgent) {
+                WaiterAgent w = (WaiterAgent) currentPerson;
+                restPanel.AskToComeBack(w);
+                waiterStateB.setText("Break");
+            }
+        }
         else if (e.getSource() == pauseCB){
         	if (pauseCB.isSelected() && pauseCB.getText().compareTo("pause") == 0){
         		System.out.println("heard pause");
@@ -149,22 +182,12 @@ public class RestaurantGui extends JFrame implements ActionListener{
         		pauseCB.setSelected(false);
         	}
         }
-        else if (e.getSource() == addWaiterB){
+        /*else if (e.getSource() == addWaiterB){
         	if (waiterNameTF.getText().compareTo("") != 0){
         		System.out.println("Waiter added");
         		restPanel.addPerson("Waiters", waiterNameTF.getText());
         	}
-        } 
-        else if (e.getSource() == breakB && breakB.getText().compareTo("Break") == 0) {
-        	restPanel.AskForBreak();
-        	breakB.setText("Back");
-        	return;
-        }
-        else if (e.getSource() == breakB && breakB.getText().compareTo("Back") == 0) {
-        	restPanel.AskToComeBack();
-        	breakB.setText("Break");
-        	return;
-        }
+        }*/
     }
     
     /**

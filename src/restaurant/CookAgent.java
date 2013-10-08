@@ -14,14 +14,14 @@ public class CookAgent extends Agent{
 	public Map<String, Food> inventory = new HashMap<String, Food>();
 	Timer timer = new Timer();
 	public CookGui cookGui = null;
-	boolean lowInFood = false;
+	boolean lowInFood = true;
 	
 	public CookAgent() {
 		super();
-		inventory.put("Steak", new Food("Steak", 5000, 1, 2, 10));
-		inventory.put("Chicken", new Food("Chicken", 4000, 1, 2, 10));
-		inventory.put("Salad", new Food("Salad", 1000, 1, 2, 10));
-		inventory.put("Pizza", new Food("Pizza", 3000, 1, 2, 10));
+		inventory.put("Steak", new Food("Steak", 5000, 1, 3, 5));
+		inventory.put("Chicken", new Food("Chicken", 4000, 1, 3, 5));
+		inventory.put("Salad", new Food("Salad", 1000, 1, 3, 5));
+		inventory.put("Pizza", new Food("Pizza", 3000, 1, 3, 5));
 	}
 
 	public void setGui(CookGui gui){
@@ -54,6 +54,15 @@ public class CookAgent extends Agent{
 		inventory.get("Chicken").amount += order.get("Chicken");
 		inventory.get("Pizza").amount += order.get("Pizza");
 		inventory.get("Salad").amount += order.get("Salad");
+		if (inventory.get("Steak").amount < inventory.get("Steak").threshold)
+			lowInFood = true;
+		if (inventory.get("Chicken").amount < inventory.get("Chicken").threshold)
+			lowInFood = true;
+		if (inventory.get("Pizza").amount < inventory.get("Pizza").threshold)
+			lowInFood = true;
+		if (inventory.get("Salad").amount < inventory.get("Salad").threshold)
+			lowInFood = true;
+		stateChanged();
 	}
 	/**
 	 * Scheduler.  Determine what action is called for, and do it.
@@ -73,7 +82,7 @@ public class CookAgent extends Agent{
 					returnOrder(order);
 					return true;
 				}
-			}		
+			}
 			for (Order order : orders){
 				if (order.state == Order.OrderState.NotCooked){
 					cookOrder(order);

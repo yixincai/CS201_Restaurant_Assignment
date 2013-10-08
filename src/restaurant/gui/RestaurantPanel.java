@@ -22,8 +22,8 @@ public class RestaurantPanel extends JPanel{
     private CashierAgent cashier = new CashierAgent();
     private CashierGui cashierGui = new CashierGui(cashier);
 
-    private WaiterAgent waiter = new WaiterAgent("Mike");
-    private WaiterGui waiterGui = new WaiterGui(waiter);
+    //private WaiterAgent waiter = new WaiterAgent("Mike");
+    //private WaiterGui waiterGui = new WaiterGui(waiter);
     
     private CookAgent cook = new CookAgent();
     private CookGui cookGui = new CookGui(cook);
@@ -32,23 +32,25 @@ public class RestaurantPanel extends JPanel{
     		market3 = new MarketAgent("Market3");
     
     private Vector<CustomerAgent> customers = new Vector<CustomerAgent>();
+    private Vector<WaiterAgent> waiters = new Vector<WaiterAgent>();
 
     private JPanel restLabel = new JPanel();
     private ListPanel customerPanel = new ListPanel(this, "Customers");
+    private WaiterListPanel waiterPanel = new WaiterListPanel(this, "Waiters");
     private JPanel group = new JPanel();
     private RestaurantGui gui; //reference to main gui
 
     public RestaurantPanel(RestaurantGui gui) {
         this.gui = gui;
         host.setGui(hostGui);
-        waiter.setGui(waiterGui);
+        //waiter.setGui(waiterGui);
         cook.setGui(cookGui);
         cashier.setGui(cashierGui);
         
-        host.addWaiter(waiter);
-        waiter.setCook(cook);
-        waiter.setHost(host);
-        waiter.setCashier(cashier);
+        //host.addWaiter(waiter);
+        //waiter.setCook(cook);
+        //waiter.setHost(host);
+        //waiter.setCashier(cashier);
         cook.addMarket(market1);
         market1.setCook(cook);
         cook.addMarket(market2);
@@ -56,11 +58,13 @@ public class RestaurantPanel extends JPanel{
         cook.addMarket(market3);
         market3.setCook(cook);
         
+        //waiters.add(waiter);
+        //waiterPanel.addFirstPerson("Mike");
         gui.animationPanel.addGui(hostGui);
         host.startThread();
         
-        gui.animationPanel.addGui(waiterGui);
-        waiter.startThread();
+        //gui.animationPanel.addGui(waiterGui);
+        //waiter.startThread();
         
         gui.animationPanel.addGui(cookGui);
         cook.startThread();
@@ -76,7 +80,7 @@ public class RestaurantPanel extends JPanel{
         group.setLayout(new GridLayout(1, 2, 10, 10));
 
         group.add(customerPanel);
-
+        group.add(waiterPanel);
         initRestLabel();
         add(restLabel);
         add(group);
@@ -100,12 +104,12 @@ public class RestaurantPanel extends JPanel{
         restLabel.add(new JLabel("               "), BorderLayout.WEST);
     }
     
-    public void AskForBreak(){
+    public void AskForBreak(WaiterAgent waiter){
     	waiter.msgAskForBreak();
     	System.out.println("Got break msg");
     }
 
-    public void AskToComeBack(){
+    public void AskToComeBack(WaiterAgent waiter){
     	waiter.msgAskToComeBack();
     	System.out.println("Got back msg");
     }    
@@ -124,6 +128,14 @@ public class RestaurantPanel extends JPanel{
 
             for (int i = 0; i < customers.size(); i++) {
                 CustomerAgent temp = customers.get(i);
+                if (temp.getName() == name)
+                    gui.updateInfoPanel(temp);
+            }
+        }
+        if (type.equals("Waiters")) {
+
+            for (int i = 0; i < waiters.size(); i++) {
+                WaiterAgent temp = waiters.get(i);
                 if (temp.getName() == name)
                     gui.updateInfoPanel(temp);
             }
@@ -169,7 +181,9 @@ public class RestaurantPanel extends JPanel{
     		w.setGui(g);
     		w.setHost(host);
     		w.setCook(cook);
+    		w.setCashier(cashier);
     		host.addWaiter(w);
+    		waiters.add(w);
     		gui.animationPanel.addGui(g);
     		w.startThread();
     	}
