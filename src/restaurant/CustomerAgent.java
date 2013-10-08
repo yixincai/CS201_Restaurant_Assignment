@@ -28,13 +28,13 @@ public class CustomerAgent extends Agent {
 	private static final long thinking_time = 3000, eating_time = 5000;
 	
 	public enum AgentState
-	{DoingNothing, WaitingInRestaurant, BeingSeated, Seated, ReadyToOrder, 
+	{DoingNothing, WaitingInRestaurant, decideToLeave, BeingSeated, Seated, ReadyToOrder, 
 		GivenOrder, Eating, DoneEating, waitingForBill, waitingForChange, Leaving};
 	private AgentState state = AgentState.DoingNothing;//The start state
 
 	public enum AgentEvent 
-	{none, gotHungry, followHost, seated, doneThinking, orderFood, gotFood, 
-		doneEating, billArrived, changeArrived, doneLeaving};
+	{none, gotHungry, noSeat, toLeave, toStay, followHost, seated, noMoney, doneThinking,
+		orderFood, noFood, gotFood, doneEating, billArrived, changeArrived, badLuck, doneLeaving};
 	AgentEvent event = AgentEvent.none;
 
 	/**
@@ -46,7 +46,7 @@ public class CustomerAgent extends Agent {
 	public CustomerAgent(String name){
 		super();
 		Random r = new Random();
-		this.money = 10 + r.nextInt(30);
+		this.money = /*0*/10 /*+ r.nextInt(30)*/;
 		this.name = name;
 	}
 
@@ -72,6 +72,12 @@ public class CustomerAgent extends Agent {
 		event = AgentEvent.gotHungry;
 		stateChanged();
 	}
+	
+	public void msgNoSeat() {
+		print("Told by host no seat available.");
+		event = AgentEvent.noSeat;
+		stateChanged();
+	}
 
 	public void msgFollowMe(WaiterAgent w, int tablenumber, Menu menu) {
 		print("Received msgSitAtTable");
@@ -84,9 +90,8 @@ public class CustomerAgent extends Agent {
 	
 	public void msgNoFood(Menu menu){
 		this.menu = menu;
-		print("rethink");
-		state = AgentState.BeingSeated;
-		event = AgentEvent.seated;
+		print("Told by waiter to rethink");
+		event = AgentEvent.noFood;
 		stateChanged();		
 	}
 
@@ -114,6 +119,13 @@ public class CustomerAgent extends Agent {
 		print("Received change of " + change);
 		event = AgentEvent.changeArrived;
 		this.money = change;
+		stateChanged();
+	}
+	
+	public void msgYouDoNotHaveEnoughMoney(){
+		print("Got caught on inadequate money");
+		event = AgentEvent.badLuck;
+		stateChanged();
 	}
 	
 	public void msgAnimationFinishedGoToSeat() {
@@ -141,56 +153,89 @@ public class CustomerAgent extends Agent {
 	 */
 	protected boolean pickAndExecuteAnAction() {
 		//	CustomerAgent is a finite state machine
-
-		if (state == AgentState.DoingNothing && event == AgentEvent.gotHungry ){
-			state = AgentState.WaitingInRestaurant;
-			goToRestaurant();
-			return true;
+		try{
+			if (state == AgentState.DoingNothing && event == AgentEvent.gotHungry ){
+				state = AgentState.WaitingInRestaurant;
+				goToRestaurant();
+				return true;
+			}
+			else if (state == AgentState.WaitingInRestaurant && event == AgentEvent.noSeat){
+				state = AgentState.decideToLeave;
+				ThinkAboutLeaving();
+				return true;
+			}
+			else if (state == AgentState.decideToLeave && event == AgentEvent.toStay){
+				state = AgentState.WaitingInRestaurant;
+				return true;
+			}
+			else if (state == AgentState.decideToLeave && event == AgentEvent.toLeave){
+				state = AgentState.Leaving;
+				leaveRestaurant();
+				return true;
+			}
+			else if (state == AgentState.WaitingInRestaurant && event == AgentEvent.followHost){
+				state = AgentState.BeingSeated;
+				SitDown();
+				return true;
+			}
+			else if (state == AgentState.BeingSeated && event == AgentEvent.seated){
+				state = AgentState.Seated;
+				ThinkAboutMenu();
+				return true;
+			}
+			else if (state == AgentState.Seated && event == AgentEvent.doneThinking){
+				state = AgentState.ReadyToOrder;
+				AskWaiterToPickUpOrder();
+				return true;
+			}
+			else if (state == AgentState.Seated && event == AgentEvent.noMoney){
+				state = AgentState.Leaving;
+				leaveRestaurant();
+				return true;
+			}
+			else if (state == AgentState.ReadyToOrder && event == AgentEvent.orderFood){
+				state = AgentState.GivenOrder;
+				GiveOrder();
+				return true;
+			}
+			else if (state == AgentState.GivenOrder && event == AgentEvent.noFood){
+				state = AgentState.Seated;
+				ThinkAboutMenu();
+				return true;
+			}
+			else if (state == AgentState.GivenOrder && event == AgentEvent.gotFood){
+				state = AgentState.Eating;
+				EatFood();
+				return true;
+			}
+			else if (state == AgentState.Eating && event == AgentEvent.doneEating){
+				state = AgentState.waitingForBill;
+				askForBill();
+				return true;
+			}
+			else if (state == AgentState.waitingForBill && event == AgentEvent.billArrived){
+				state = AgentState.waitingForChange;
+				askForChange();
+				return true;
+			}
+			else if (state == AgentState.waitingForChange && event == AgentEvent.changeArrived){
+				state = AgentState.Leaving;
+				leaveRestaurant();
+				return true;
+			}
+			else if (state == AgentState.waitingForChange && event == AgentEvent.badLuck){
+				state = AgentState.Leaving;
+				goToJail();
+				return true;
+			}
+			else if (state == AgentState.Leaving && event == AgentEvent.doneLeaving){
+				state = AgentState.DoingNothing;
+				//no action
+				return true;
+			}
 		}
-		else if (state == AgentState.WaitingInRestaurant && event == AgentEvent.followHost ){
-			state = AgentState.BeingSeated;
-			SitDown();
-			return true;
-		}
-		else if (state == AgentState.BeingSeated && event == AgentEvent.seated){
-			state = AgentState.Seated;
-			ThinkAboutMenu();
-			return true;
-		}
-		else if (state == AgentState.Seated && event == AgentEvent.doneThinking){
-			state = AgentState.ReadyToOrder;
-			AskWaiterToPickUpOrder();
-			return true;
-		}	
-		else if (state == AgentState.ReadyToOrder && event == AgentEvent.orderFood){
-			state = AgentState.GivenOrder;
-			GiveOrder();
-			return true;
-		}	
-		else if (state == AgentState.GivenOrder && event == AgentEvent.gotFood){
-			state = AgentState.Eating;
-			EatFood();
-			return true;
-		}
-		else if (state == AgentState.Eating && event == AgentEvent.doneEating){
-			state = AgentState.waitingForBill;
-			askForBill();
-			return true;
-		}
-		else if (state == AgentState.waitingForBill && event == AgentEvent.billArrived){
-			state = AgentState.waitingForChange;
-			askForChange();
-			return true;
-		}
-		else if (state == AgentState.waitingForChange && event == AgentEvent.changeArrived){
-			state = AgentState.Leaving;
-			leaveRestaurant();
-			return true;
-		}
-		else if (state == AgentState.Leaving && event == AgentEvent.doneLeaving){
-			state = AgentState.DoingNothing;
-			//no action
-			return true;
+		catch(ConcurrentModificationException e){
+			return false;
 		}
 		return false;
 	}
@@ -201,6 +246,22 @@ public class CustomerAgent extends Agent {
 		Do("Going to restaurant");
 		host.msgIWantFood(this);//send our instance, so he can respond to us
 	}
+	
+	private void ThinkAboutLeaving(){
+		Do("Think about whether to stay waiting or to leave.");
+		Random r = new Random();
+		int choice = r.nextInt(2);
+		if (choice == 0){
+			event = AgentEvent.toLeave;
+			host.msgIAmLeaving(this);
+			Do("I want to leave the restaurant");
+		}
+		else{
+			event = AgentEvent.toStay;
+			host.msgIWantToStay(this);
+			Do("I want to stay in the restaurant");
+		}
+	}
 
 	private void AskWaiterToPickUpOrder() {
 		Do("I'm ready to order");
@@ -209,13 +270,23 @@ public class CustomerAgent extends Agent {
 	
 	private void ThinkAboutMenu() {
 		Do("Thinking about Food");
+		boolean hasAffordableFood = false;
+		for(int i=0; i<menu.menu.size(); i++){
+			if (menu.menu.get(i).price <= money)
+				hasAffordableFood = true;
+		}
+		if(!hasAffordableFood){
+			waiter.msgNoMoneyAndLeaving(this);
+			event = AgentEvent.noMoney;
+			return;
+		}
 		timer.schedule(new TimerTask() {
 			public void run() {
 				event = AgentEvent.doneThinking;
 				stateChanged();
 			}
 		},
-		thinking_time);//getHungerLevel() * 1000);//how long to wait before running task
+		thinking_time);
 		Random r = new Random();
 		int choice = r.nextInt(menu.menu.size());
 		this.choice = menu.menu.get(choice).name;
@@ -262,7 +333,6 @@ public class CustomerAgent extends Agent {
 	
 	private void askForChange() {
 		Do("Leaving and Asking for change with money " + money);
-		cashier.msgHereIsThePayment(this, check, money);
 		waiter.msgLeavingRestaurant(this);
 		customerGui.DoGoToCashier();
 		try {
@@ -270,11 +340,17 @@ public class CustomerAgent extends Agent {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+		cashier.msgHereIsThePayment(this, check, money);
 	}
 	
 	private void leaveRestaurant() {
 		Do("Leaving restaurant");
 		customerGui.DoExitRestaurant();
+	}
+	
+	private void goToJail() {
+		Do("Going to jail");
+		customerGui.DoGoToJail();
 	}
 
 	// Accessors, etc.

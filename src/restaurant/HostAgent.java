@@ -2,6 +2,7 @@ package restaurant;
 
 import agent.Agent;
 import restaurant.WaiterAgent;
+import restaurant.CustomerAgent.AgentState;
 import restaurant.gui.HostGui;
 
 import java.util.*;
@@ -14,7 +15,7 @@ public class HostAgent extends Agent {
 	static final int NTABLES = 3;//a global for the number of tables.
 	//Notice that we implement waitingCustomers using ArrayList, but type it
 	//with List semantics.
-	public List<CustomerAgent> waitingCustomers = Collections.synchronizedList(new ArrayList<CustomerAgent>());
+	public List<MyCustomer> waitingCustomers = Collections.synchronizedList(new ArrayList<MyCustomer>());
 	public Collection<Table> tables;
 	public List<MyWaiter> waiters = new ArrayList<MyWaiter>(); 
 	boolean wantToBreak= false;
@@ -52,9 +53,29 @@ public class HostAgent extends Agent {
 	// Messages
 
 	public void msgIWantFood(CustomerAgent cust) {
-		waitingCustomers.add(cust);
+		waitingCustomers.add(new MyCustomer(cust));
 		Do("Got customer " + waitingCustomers.size());
 		stateChanged();
+	}
+
+	public void msgIAmLeaving(CustomerAgent cust) {
+		for (MyCustomer customer : waitingCustomers) {
+			if (customer.customer == cust) {
+				print(cust + " want to leave");
+				waitingCustomers.remove(customer);
+				stateChanged();
+			}
+		}
+	}
+	
+	public void msgIWantToStay(CustomerAgent cust) {
+		for (MyCustomer customer : waitingCustomers) {
+			if (customer.customer == cust) {
+				print(cust + " want to stay");
+				customer.state = MyCustomer.CustomerState.staying;
+				stateChanged();
+			}
+		}
 	}
 
 	public void msgTableIsFree(CustomerAgent cust, int tablenumber) {
@@ -86,23 +107,41 @@ public class HostAgent extends Agent {
 	 * Scheduler.  Determine what action is called for, and do it.
 	 */
 	protected boolean pickAndExecuteAnAction() {
-
-		for (MyWaiter waiter : waiters) {
-			if (waiter.state == MyWaiter.WaiterState.askingForBreak && waiters.size() > 1) {
-				Do("Break granted");
-				waiter.w.msgBreakGranted();
-				waiters.remove(waiter);
-				return true;
-			}
-		}
-
-		for (Table table : tables) {
-			if (!table.isOccupied()) {
-				if (!waitingCustomers.isEmpty()) {
-					seatCustomer(waitingCustomers.get(0), table);//the action
-					return true;//return true to the abstract agent to reinvoke the scheduler.
+		try{
+			for (MyWaiter waiter : waiters) {
+				if (waiter.state == MyWaiter.WaiterState.askingForBreak && waiters.size() > 1) {
+					Do("Break granted");
+					waiter.w.msgBreakGranted();
+					waiters.remove(waiter);
+					return true;
 				}
 			}
+			boolean hasEmptyTable = false;
+			for (Table table : tables) {
+				if (!table.isOccupied()) {
+					hasEmptyTable = true;
+					for (MyCustomer customer : waitingCustomers) {
+						if (customer.state == MyCustomer.CustomerState.waiting ||
+								customer.state == MyCustomer.CustomerState.staying) {
+							seatCustomer(customer.customer, table);
+							waitingCustomers.remove(customer);
+							return true;
+						}
+					}
+				}
+			}
+			if (!hasEmptyTable){
+				for (MyCustomer customer : waitingCustomers){
+					if(customer.state == MyCustomer.CustomerState.waiting){
+						customer.customer.msgNoSeat();
+						customer.state = MyCustomer.CustomerState.deciding;
+						return true;
+					}
+				}
+			}
+		}
+		catch(ConcurrentModificationException e){
+			return false;
 		}
 
 		return false;
@@ -121,8 +160,6 @@ public class HostAgent extends Agent {
 		Do("Telling waiter " + waiterNumber + " " + waiters.get(waiterNumber).w.getName() + " to seat customer");
 		waiters.get(waiterNumber).w.msgSitAtTable(customer, table.tableNumber);
 		table.setOccupant(customer);
-		waitingCustomers.remove(customer);
-		stateChanged();
 	}
 
 	//utilities
@@ -172,6 +209,18 @@ public class HostAgent extends Agent {
 		
 		MyWaiter(WaiterAgent w){
 			this.w = w;
+		}
+	}
+	
+	public static class MyCustomer{
+		CustomerAgent customer;
+		public enum CustomerState
+		{waiting, deciding, staying};
+		private CustomerState state;
+		
+		MyCustomer(CustomerAgent cust){
+			this.customer = cust;
+			this.state = CustomerState.waiting;
 		}
 	}
 }

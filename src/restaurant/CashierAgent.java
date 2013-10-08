@@ -47,17 +47,23 @@ public class CashierAgent extends Agent{
 	 * Scheduler.  Determine what action is called for, and do it.
 	 */
 	protected boolean pickAndExecuteAnAction() {
-		for (Bill bill : bills){
-			if (bill.state == Bill.BillState.NotComputed){
-				computeBill(bill);
-				return true;
+		try{
+			for (Bill bill : bills){
+				if (bill.state == Bill.BillState.NotComputed){
+					computeBill(bill);
+					return true;
+				}
+			}
+			for (Bill bill : bills){
+				if (bill.state == Bill.BillState.ReturnedFromCustomer){
+					makeChange(bill);
+					bills.remove(bill);
+					return true;
+				}
 			}
 		}
-		for (Bill bill : bills){
-			if (bill.state == Bill.BillState.ReturnedFromCustomer){
-				makeChange(bill);
-				return true;
-			}
+		catch(ConcurrentModificationException e){
+			return false;
 		}
 
 		return false;
@@ -75,8 +81,12 @@ public class CashierAgent extends Agent{
 	}
 
 	private void makeChange(Bill bill) {
+		if(bill.cash - bill.price < 0){
+			Do("Customer DO NOT HAVE ENOUGH MONEY.");
+			bill.customer.msgYouDoNotHaveEnoughMoney();
+			return;
+		}
 		Do("Giving change to customer");
-		bill.state = Bill.BillState.None;
 		bill.customer.msgHereIsTheChange(bill.cash - bill.price);
 	}
 

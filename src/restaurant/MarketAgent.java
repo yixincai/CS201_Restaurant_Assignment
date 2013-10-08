@@ -7,13 +7,14 @@ import restaurant.gui.*;
 import java.util.*;
 
 public class MarketAgent extends Agent{
-    private String name = "Market";
-    public CookAgent cook = null;
+	private String name = "Market";
+	public CookAgent cook = null;
 	private Map<String, Integer> order = new HashMap<String, Integer>();
 	private Map<String, Integer> inventory = new HashMap<String, Integer>();
-	boolean orderReceived = false;
+	boolean orderReceived = false, orderFinished = false;
 	Random r = new Random();
-	
+	Timer timer = new Timer();
+
 	public MarketAgent(String name) {
 		super();
 		this.name = name;
@@ -22,7 +23,7 @@ public class MarketAgent extends Agent{
 		inventory.put("Salad", r.nextInt(10));
 		inventory.put("Pizza", r.nextInt(10));
 	}
-	
+
 	public String getName() {
 		return name;
 	}
@@ -38,14 +39,33 @@ public class MarketAgent extends Agent{
 		stateChanged();
 	}
 
+	public void msgDone(){
+		orderFinished = true;
+		stateChanged();
+	}
+
 	/**
 	 * Scheduler.  Determine what action is called for, and do it.
 	 */
 	protected boolean pickAndExecuteAnAction() {
-		if (orderReceived){
-			returnOrder(order);
-			orderReceived = false;
-			return true;
+		try{
+			if (orderReceived){
+				timer.schedule(new TimerTask() {
+					public void run() {
+						msgDone();
+					}
+				}, 2000);
+				orderReceived = false;
+				return true;
+			}
+			if (orderFinished){
+				returnOrder(order);
+				orderFinished = false;
+				return true;
+			}
+		}
+		catch(ConcurrentModificationException e){
+			return false;
 		}
 
 		return false;

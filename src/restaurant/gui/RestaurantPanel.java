@@ -29,7 +29,7 @@ public class RestaurantPanel extends JPanel{
     private CookGui cookGui = new CookGui(cook);
     
     private MarketAgent market1 = new MarketAgent("Market1"), market2 = new MarketAgent("Market2"), 
-    		market3 = new MarketAgent("Market3"), market4 = new MarketAgent("Market4");
+    		market3 = new MarketAgent("Market3");
     
     private Vector<CustomerAgent> customers = new Vector<CustomerAgent>();
 
@@ -51,12 +51,10 @@ public class RestaurantPanel extends JPanel{
         waiter.setCashier(cashier);
         cook.addMarket(market1);
         market1.setCook(cook);
-        //cook.addMarket(market2);
+        cook.addMarket(market2);
         market2.setCook(cook);
-        //cook.addMarket(market3);
+        cook.addMarket(market3);
         market3.setCook(cook);
-        //cook.addMarket(market4);
-        market4.setCook(cook);
         
         gui.animationPanel.addGui(hostGui);
         host.startThread();
@@ -73,7 +71,6 @@ public class RestaurantPanel extends JPanel{
         market1.startThread();
         market2.startThread();
         market3.startThread();
-        market4.startThread();
         
         setLayout(new GridLayout(1, 2, 20, 20));
         group.setLayout(new GridLayout(1, 2, 10, 10));

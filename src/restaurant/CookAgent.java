@@ -18,10 +18,10 @@ public class CookAgent extends Agent{
 	
 	public CookAgent() {
 		super();
-		inventory.put("Steak", new Food("Steak", 5000, 0, 2, 10));
-		inventory.put("Chicken", new Food("Chicken", 4000, 0, 2, 10));
-		inventory.put("Salad", new Food("Salad", 1000, 0, 2, 10));
-		inventory.put("Pizza", new Food("Pizza", 3000, 0, 2, 10));
+		inventory.put("Steak", new Food("Steak", 5000, 1, 2, 10));
+		inventory.put("Chicken", new Food("Chicken", 4000, 1, 2, 10));
+		inventory.put("Salad", new Food("Salad", 1000, 1, 2, 10));
+		inventory.put("Pizza", new Food("Pizza", 3000, 1, 2, 10));
 	}
 
 	public void setGui(CookGui gui){
@@ -59,25 +59,30 @@ public class CookAgent extends Agent{
 	 * Scheduler.  Determine what action is called for, and do it.
 	 */
 	protected boolean pickAndExecuteAnAction() {
-		if(lowInFood){
-			if (market_index < markets.size() - 1)
-				market_index++;
-			else
-				market_index = 0;
-			lowInFood = false;
-			askForSupply();
+		try{
+			if(lowInFood){
+				if (market_index < markets.size() - 1)
+					market_index++;
+				else
+					market_index = 0;
+				lowInFood = false;
+				askForSupply();
+			}
+			for (Order order : orders){
+				if (order.state == Order.OrderState.Cooked){
+					returnOrder(order);
+					return true;
+				}
+			}		
+			for (Order order : orders){
+				if (order.state == Order.OrderState.NotCooked){
+					cookOrder(order);
+					return true;
+				}
+			}
 		}
-		for (Order order : orders){
-			if (order.state == Order.OrderState.Cooked){
-				returnOrder(order);
-				return true;
-			}
-		}		
-		for (Order order : orders){
-			if (order.state == Order.OrderState.NotCooked){
-				cookOrder(order);
-				return true;
-			}
+		catch(ConcurrentModificationException e){
+			return false;
 		}
 
 		return false;

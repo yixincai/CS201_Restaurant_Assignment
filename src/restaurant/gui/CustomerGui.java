@@ -114,6 +114,11 @@ public class CustomerGui extends JPanel implements Gui{
 		yDestination = 70;
 		command = Command.GoToCashier;
 	}
+	
+	public void DoGoToJail() {
+		xDestination = 50;
+		yDestination = 170;
+	}
 
 	public void showOrderFood(String choice){
 		this.choice = choice + "?";
