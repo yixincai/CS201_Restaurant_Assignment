@@ -83,7 +83,7 @@ public class CashierAgent extends Agent{
 	private void makeChange(Bill bill) {
 		if(bill.cash - bill.price < 0){
 			Do("Customer DO NOT HAVE ENOUGH MONEY.");
-			bill.customer.msgYouDoNotHaveEnoughMoney();
+			bill.customer.msgYouDoNotHaveEnoughMoney(bill.price - bill.cash);
 			return;
 		}
 		Do("Giving change to customer");
