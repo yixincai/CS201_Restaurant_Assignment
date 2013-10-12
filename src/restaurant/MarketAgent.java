@@ -54,7 +54,7 @@ public class MarketAgent extends Agent{
 					public void run() {
 						msgDone();
 					}
-				}, 2000);
+				}, 5000);
 				orderReceived = false;
 				return true;
 			}

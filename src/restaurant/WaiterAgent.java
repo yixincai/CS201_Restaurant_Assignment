@@ -21,7 +21,8 @@ public class WaiterAgent extends Agent {
 	public CashierAgent cashier = null;
 	public WaiterGui waiterGui = null;
 	private Semaphore atTable = new Semaphore(0,true);
-	boolean breakRequest = false, OnBreak = false, backRequest = false;
+	boolean breakRequest = false, backRequest = false;//Two booleans from gui to tell whether to go on break or to 
+	boolean	OnBreak = false, breakEnabled = true; //Two booleans to tell gui what to show and whether to enable
 
 	private String name;
 
@@ -36,6 +37,10 @@ public class WaiterAgent extends Agent {
 	
 	public boolean getBreakStatus(){
 		return OnBreak;
+	}
+	
+	public boolean getBreakEnable(){
+		return breakEnabled;
 	}
 
 	public void setHost(HostAgent h){
@@ -141,12 +146,13 @@ public class WaiterAgent extends Agent {
 
 	public void msgAskForBreak(){
 		breakRequest = true;
-		OnBreak = true;
+		OnBreak = true;// for gui purpose
+		breakEnabled = false;//for gui purpose
 		stateChanged();
 	}
 
 	public void msgBreakGranted(){
-		//breakGranted = true; // for gui purpose
+		breakEnabled = true;//for gui purpose
 		Do("Break request granted.");
 		stateChanged();
 	}

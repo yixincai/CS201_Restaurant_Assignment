@@ -92,7 +92,7 @@ public class HostAgent extends Agent {
 	public void msgWantToBreak(WaiterAgent w){
 		for (MyWaiter waiter : waiters) {
 			if (waiter.w == w) {
-				print(w + " want to break");
+				print(w.getName() + " want to break");
 				waiter.state = MyWaiter.WaiterState.askingForBreak;
 				stateChanged();
 			}
