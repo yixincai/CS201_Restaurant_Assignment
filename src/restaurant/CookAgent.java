@@ -69,14 +69,6 @@ public class CookAgent extends Agent{
 	 */
 	protected boolean pickAndExecuteAnAction() {
 		try{
-			if(lowInFood){
-				if (market_index < markets.size() - 1)
-					market_index++;
-				else
-					market_index = 0;
-				lowInFood = false;
-				askForSupply();
-			}
 			for (Order order : orders){
 				if (order.state == Order.OrderState.Cooked){
 					returnOrder(order);
@@ -88,6 +80,14 @@ public class CookAgent extends Agent{
 					cookOrder(order);
 					return true;
 				}
+			}
+			if(lowInFood){
+				if (market_index < markets.size() - 1)
+					market_index++;
+				else
+					market_index = 0;
+				lowInFood = false;
+				askForSupply();
 			}
 		}
 		catch(ConcurrentModificationException e){
