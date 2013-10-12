@@ -23,9 +23,10 @@ public class CustomerAgent extends Agent {
 	private CashierAgent cashier = null;
 	private static Menu menu = null;
 	private String choice;
-	private double money, check;
+	private double money, check, debt = 0;
 	private int seatnumber;
 	private static final long thinking_time = 3000, eating_time = 5000;
+	Random r = new Random();
 	
 	public enum AgentState
 	{DoingNothing, WaitingInRestaurant, decideToLeave, BeingSeated, Seated, ReadyToOrder, 
@@ -45,8 +46,7 @@ public class CustomerAgent extends Agent {
 	 */
 	public CustomerAgent(String name){
 		super();
-		Random r = new Random();
-		this.money = /*0*/10 /*+ r.nextInt(30)*/;
+		this.money = 0;
 		this.name = name;
 	}
 
@@ -68,6 +68,7 @@ public class CustomerAgent extends Agent {
 
 	public void gotHungry() {//from animation
 		print("I'm hungry");
+		money += 5/*r.nextInt(20)*/;
 		Do("I have " + this.money + " dollars.");
 		event = AgentEvent.gotHungry;
 		stateChanged();
@@ -122,8 +123,10 @@ public class CustomerAgent extends Agent {
 		stateChanged();
 	}
 	
-	public void msgYouDoNotHaveEnoughMoney(){
+	public void msgYouDoNotHaveEnoughMoney(double debt){
 		print("Got caught on inadequate money");
+		this.money = 0;
+		this.debt += debt;
 		event = AgentEvent.badLuck;
 		stateChanged();
 	}
@@ -200,7 +203,7 @@ public class CustomerAgent extends Agent {
 			}
 			else if (state == AgentState.GivenOrder && event == AgentEvent.noFood){
 				state = AgentState.Seated;
-				ThinkAboutMenu();
+				RethinkAboutMenu();
 				return true;
 			}
 			else if (state == AgentState.GivenOrder && event == AgentEvent.gotFood){
@@ -225,7 +228,7 @@ public class CustomerAgent extends Agent {
 			}
 			else if (state == AgentState.waitingForChange && event == AgentEvent.badLuck){
 				state = AgentState.Leaving;
-				goToJail();
+				leaveRestaurant();//goToJail();
 				return true;
 			}
 			else if (state == AgentState.Leaving && event == AgentEvent.doneLeaving){
@@ -249,7 +252,6 @@ public class CustomerAgent extends Agent {
 	
 	private void ThinkAboutLeaving(){
 		Do("Think about whether to stay waiting or to leave.");
-		Random r = new Random();
 		int choice = r.nextInt(2);
 		if (choice == 0){
 			event = AgentEvent.toLeave;
@@ -275,11 +277,23 @@ public class CustomerAgent extends Agent {
 			if (menu.menu.get(i).price <= money)
 				hasAffordableFood = true;
 		}
-		if(!hasAffordableFood){
+		int choice = r.nextInt(2);
+		Do("The choice to stay/leave is " + choice);
+		if(!hasAffordableFood && choice == 1){
 			waiter.msgNoMoneyAndLeaving(this);
 			event = AgentEvent.noMoney;
 			return;
 		}
+		int food_choice = r.nextInt(menu.menu.size());
+		if (hasAffordableFood){
+			while (menu.menu.get(food_choice).price > money){
+				if (food_choice < r.nextInt(menu.menu.size()-1))
+					food_choice++;
+				else
+					food_choice = 0;
+			}
+		}
+		this.choice = menu.menu.get(food_choice).name;
 		timer.schedule(new TimerTask() {
 			public void run() {
 				event = AgentEvent.doneThinking;
@@ -287,9 +301,35 @@ public class CustomerAgent extends Agent {
 			}
 		},
 		thinking_time);
-		Random r = new Random();
-		int choice = r.nextInt(menu.menu.size());
-		this.choice = menu.menu.get(choice).name;
+	}
+	
+	private void RethinkAboutMenu() {
+		Do("Thinking about Food");
+		boolean hasAffordableFood = false;
+		for(int i=0; i<menu.menu.size(); i++){
+			if (menu.menu.get(i).price <= money)
+				hasAffordableFood = true;
+		}
+		if(!hasAffordableFood){
+			waiter.msgNoMoneyAndLeaving(this);
+			event = AgentEvent.noMoney;
+			return;
+		}
+		int food_choice = r.nextInt(menu.menu.size());
+		while (menu.menu.get(food_choice).price > money){
+			if (food_choice < r.nextInt(menu.menu.size()-1))
+				food_choice++;
+			else
+				food_choice = 0;
+		}
+		this.choice = menu.menu.get(food_choice).name;
+		timer.schedule(new TimerTask() {
+			public void run() {
+				event = AgentEvent.doneThinking;
+				stateChanged();
+			}
+		},
+		thinking_time);
 	}
 	
 	private void GiveOrder() {
@@ -333,6 +373,7 @@ public class CustomerAgent extends Agent {
 	
 	private void askForChange() {
 		Do("Leaving and Asking for change with money " + money);
+		Do("My debt is " + debt);
 		waiter.msgLeavingRestaurant(this);
 		customerGui.DoGoToCashier();
 		try {
@@ -340,7 +381,7 @@ public class CustomerAgent extends Agent {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		cashier.msgHereIsThePayment(this, check, money);
+		cashier.msgHereIsThePayment(this, check+debt, money);
 	}
 	
 	private void leaveRestaurant() {
