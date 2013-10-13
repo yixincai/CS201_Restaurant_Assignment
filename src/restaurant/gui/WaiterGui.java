@@ -24,11 +24,14 @@ public class WaiterGui extends JPanel implements Gui {
     private ImageIcon i = new ImageIcon("image/waiter.png");
     private Image image = i.getImage();
     
+    RestaurantGui gui;
+    
 	private enum Command {noCommand, GoToSeat};
 	private Command command=Command.noCommand;
     
-    public WaiterGui(WaiterAgent agent) {
+    public WaiterGui(WaiterAgent agent, RestaurantGui gui) {
         this.agent = agent;
+        this.gui = gui;
     }
 
     public void updatePosition() {
@@ -59,6 +62,10 @@ public class WaiterGui extends JPanel implements Gui {
         return true;
     }
 
+    public void setButtonEnabled(){
+    	gui.setWaiterEnabled(agent);
+    }
+    
     public void DoGoToTable(CustomerAgent customer, int table_number) {
     	
 		if (table_number == 1){
