@@ -33,7 +33,7 @@ public class CustomerGui extends JPanel implements Gui{
     private String choice;
     private boolean show_choice = false;
     
-	public CustomerGui(CustomerAgent c, RestaurantGui gui){ //HostAgent m) {
+	public CustomerGui(CustomerAgent c, RestaurantGui gui){ 
 		agent = c;
 		xPos = OriginX;
 		yPos = OriginY;
