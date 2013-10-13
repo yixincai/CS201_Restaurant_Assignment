@@ -206,6 +206,15 @@ public class RestaurantGui extends JFrame implements ActionListener{
             }
         }
     }
+    
+    public void setWaiterEnabled(WaiterAgent w) {
+        if (currentPerson instanceof WaiterAgent) {
+            WaiterAgent waiter = (WaiterAgent) currentPerson;
+            if (w.equals(waiter)) {
+            	waiterStateB.setEnabled(true);
+            }
+        }
+    }
 
     /**
      * Main routine to get gui started
