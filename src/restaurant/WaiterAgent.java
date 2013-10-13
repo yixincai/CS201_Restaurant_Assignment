@@ -154,6 +154,7 @@ public class WaiterAgent extends Agent {
 	public void msgBreakGranted(){
 		breakEnabled = true;//for gui purpose
 		Do("Break request granted.");
+		waiterGui.setButtonEnabled();
 		stateChanged();
 	}
 
