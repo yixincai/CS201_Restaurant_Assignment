@@ -68,7 +68,16 @@ public class CustomerAgent extends Agent {
 
 	public void gotHungry() {//from animation
 		print("I'm hungry");
-		money += 5/*r.nextInt(20)*/;
+		if (name.equals("5"))
+			money = 5;
+		else if (name.equals("7"))
+			money = 7;
+		else if (name.equals("10"))
+			money = 10;
+		else if (name.equals("20"))
+			money = 20;
+		else
+			money += r.nextInt(20);
 		Do("I have " + this.money + " dollars.");
 		event = AgentEvent.gotHungry;
 		stateChanged();
@@ -124,9 +133,9 @@ public class CustomerAgent extends Agent {
 	}
 	
 	public void msgYouDoNotHaveEnoughMoney(double debt){
-		print("Got caught on inadequate money");
 		this.money = 0;
 		this.debt += debt;
+		Do("My debt is " + this.debt);
 		event = AgentEvent.badLuck;
 		stateChanged();
 	}
@@ -228,7 +237,7 @@ public class CustomerAgent extends Agent {
 			}
 			else if (state == AgentState.waitingForChange && event == AgentEvent.badLuck){
 				state = AgentState.Leaving;
-				leaveRestaurant();//goToJail();
+				leaveRestaurant();
 				return true;
 			}
 			else if (state == AgentState.Leaving && event == AgentEvent.doneLeaving){
@@ -373,7 +382,6 @@ public class CustomerAgent extends Agent {
 	
 	private void askForChange() {
 		Do("Leaving and Asking for change with money " + money);
-		Do("My debt is " + debt);
 		waiter.msgLeavingRestaurant(this);
 		customerGui.DoGoToCashier();
 		try {
@@ -387,11 +395,6 @@ public class CustomerAgent extends Agent {
 	private void leaveRestaurant() {
 		Do("Leaving restaurant");
 		customerGui.DoExitRestaurant();
-	}
-	
-	private void goToJail() {
-		Do("Going to jail");
-		customerGui.DoGoToJail();
 	}
 
 	// Accessors, etc.
