@@ -14,7 +14,7 @@ public class CookAgent extends Agent{
 	public Map<String, Food> inventory = new HashMap<String, Food>();
 	Timer timer = new Timer();
 	public CookGui cookGui = null;
-	boolean lowInFood = true;
+	boolean lowInFood = false;
 	
 	public CookAgent() {
 		super();
