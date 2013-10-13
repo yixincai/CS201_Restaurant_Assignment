@@ -18,7 +18,6 @@ public class HostAgent extends Agent {
 	public List<MyCustomer> waitingCustomers = Collections.synchronizedList(new ArrayList<MyCustomer>());
 	public Collection<Table> tables;
 	public List<MyWaiter> waiters = new ArrayList<MyWaiter>(); 
-	boolean wantToBreak= false;
 	//note that tables is typed with Collection semantics.
 	//Later we will see how it is implemented
 
@@ -122,13 +121,13 @@ public class HostAgent extends Agent {
 				if (!table.isOccupied()) {
 					hasEmptyTable = true;
 					for (MyCustomer customer : waitingCustomers) {
-						if (waiters.size() == 0)
-							return false;
-						if (customer.state == MyCustomer.CustomerState.waiting ||
-								customer.state == MyCustomer.CustomerState.staying) {
-							seatCustomer(customer.customer, table);
-							waitingCustomers.remove(customer);
-							return true;
+						if (waiters.size() != 0){
+							if (customer.state == MyCustomer.CustomerState.waiting ||
+									customer.state == MyCustomer.CustomerState.staying) {
+								seatCustomer(customer.customer, table);
+								waitingCustomers.remove(customer);
+								return true;
+							}
 						}
 					}
 				}
