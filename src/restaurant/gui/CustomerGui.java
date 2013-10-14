@@ -106,10 +106,12 @@ public class CustomerGui extends JPanel implements Gui{
 			yDestination = yTable;
 		}
 		command = Command.GoToSeat;
+		show_choice = false;
 	}
 	
 	public void DoGoToCashier() {
 		show_choice = false;
+		choice = "";
 		xDestination = 300;
 		yDestination = 70;
 		command = Command.GoToCashier;
