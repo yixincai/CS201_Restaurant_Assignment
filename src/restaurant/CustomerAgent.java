@@ -316,6 +316,7 @@ public class CustomerAgent extends Agent {
 		Do("Thinking about Food");
 		boolean hasAffordableFood = false;
 		for(int i=0; i<menu.menu.size(); i++){
+			Do("The size of new menu is " + menu.menu.size());
 			if (menu.menu.get(i).price <= money)
 				hasAffordableFood = true;
 		}
