@@ -20,7 +20,7 @@ public class CookAgent extends Agent{
 		super();
 		inventory.put("Steak", new Food("Steak", 5000, 1, 3, 5));
 		inventory.put("Chicken", new Food("Chicken", 4000, 1, 3, 5));
-		inventory.put("Salad", new Food("Salad", 1000, 1, 3, 5));
+		inventory.put("Salad", new Food("Salad", 1000, 0, 3, 5));
 		inventory.put("Pizza", new Food("Pizza", 3000, 1, 3, 5));
 	}
 
