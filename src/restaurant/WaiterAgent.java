@@ -21,6 +21,7 @@ public class WaiterAgent extends Agent {
 	public CashierAgent cashier = null;
 	public WaiterGui waiterGui = null;
 	private Semaphore atTable = new Semaphore(0,true);
+	//The four booleans below are for Gui purposes, they have NOTHING to do with agent design
 	boolean breakRequest = false, backRequest = false;//Two booleans from gui to tell whether to go on break or to 
 	boolean	OnBreak = false, breakEnabled = true; //Two booleans to tell gui what to show and whether to enable
 
@@ -276,7 +277,7 @@ public class WaiterAgent extends Agent {
 		DoGoToCustomer(customer.c, customer.tableNumber);
 		customer.state = MyCustomer.CustomerState.none;
 		Menu m = new Menu();
-		m.menu.remove(customer.choice);
+		m.remove(customer.choice);
 		customer.c.msgNoFood(m);
 	}
 
