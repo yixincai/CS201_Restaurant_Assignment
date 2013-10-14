@@ -3,7 +3,7 @@ package restaurant;
 import java.util.*;
 
 public class Menu {
-	public static List<Food> menu = new ArrayList<Food>();
+	public List<Food> menu = new ArrayList<Food>();
 	
 	Menu(){
 		menu.add(new Food("Steak", 15.99));
@@ -14,7 +14,7 @@ public class Menu {
 	
 	public void remove(String s){
 		for (int i=0; i<menu.size(); i++){
-			if (menu.get(i).name.compareTo(s) == 0){
+			if (menu.get(i).name.equals(s)){
 				menu.remove(i);
 				return;
 			}
