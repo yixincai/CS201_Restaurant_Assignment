@@ -21,10 +21,18 @@ public class MarketAgent extends Agent implements Market{
 	public MarketAgent(String name) {
 		super();
 		this.name = name;
-		inventory.put("Steak", r.nextInt(10));
-		inventory.put("Chicken", r.nextInt(10));
-		inventory.put("Salad", r.nextInt(10));
-		inventory.put("Pizza", r.nextInt(10));
+		if (name.equals("Market1")){
+			inventory.put("Steak", 2);
+			inventory.put("Chicken", 2);
+			inventory.put("Salad", 2+r.nextInt(2));
+			inventory.put("Pizza", 2);
+		}
+		else{
+			inventory.put("Steak", 1);
+			inventory.put("Chicken", 1);
+			inventory.put("Salad", 1+r.nextInt(2));
+			inventory.put("Pizza", 1);
+		}
 	}
 
 	public String getName() {

@@ -19,7 +19,7 @@ public class CashierAgent extends Agent implements Cashier{
 	
 	public CashierAgent() {
 		super();
-		money = 200.0;
+		money = 130.0;
 	}
 	
 	public void setGui(CashierGui g) {
