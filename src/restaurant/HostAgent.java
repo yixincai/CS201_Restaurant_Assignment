@@ -2,8 +2,9 @@ package restaurant;
 
 import agent.Agent;
 import restaurant.WaiterAgent;
-import restaurant.CustomerAgent.AgentState;
 import restaurant.gui.HostGui;
+import restaurant.interfaces.*;
+import restaurant.test.mock.EventLog;
 
 import java.util.*;
 
@@ -11,13 +12,14 @@ import java.util.*;
  * Restaurant Host Agent
  */
 
-public class HostAgent extends Agent {
+public class HostAgent extends Agent implements Host{
+	public EventLog log = new EventLog();
 	static final int NTABLES = 3;//a global for the number of tables.
 	//Notice that we implement waitingCustomers using ArrayList, but type it
 	//with List semantics.
 	public List<MyCustomer> waitingCustomers = Collections.synchronizedList(new ArrayList<MyCustomer>());
 	public Collection<Table> tables;
-	public List<MyWaiter> waiters = new ArrayList<MyWaiter>(); 
+	public List<MyWaiter> waiters = Collections.synchronizedList(new ArrayList<MyWaiter>()); 
 	//note that tables is typed with Collection semantics.
 	//Later we will see how it is implemented
 
@@ -31,7 +33,7 @@ public class HostAgent extends Agent {
 
 		this.name = name;
 		// make some tables
-		tables = new ArrayList<Table>(NTABLES);
+		tables = Collections.synchronizedList(new ArrayList<Table>(NTABLES));
 		for (int ix = 1; ix <= NTABLES; ix++) {
 			tables.add(new Table(ix));//how you add to a collections
 		}
@@ -52,92 +54,115 @@ public class HostAgent extends Agent {
 
 	// Messages
 
-	public void msgIWantFood(CustomerAgent cust) {
-		waitingCustomers.add(new MyCustomer(cust));
-		Do("Got customer " + waitingCustomers.size());
-		stateChanged();
-	}
-
-	public void msgIAmLeaving(CustomerAgent cust) {
-		for (MyCustomer customer : waitingCustomers) {
-			if (customer.customer == cust) {
-				print(cust + " want to leave");
-				waitingCustomers.remove(customer);
-				stateChanged();
-			}
-		}
-	}
-	
-	public void msgIWantToStay(CustomerAgent cust) {
-		for (MyCustomer customer : waitingCustomers) {
-			if (customer.customer == cust) {
-				print(cust + " want to stay");
-				customer.state = MyCustomer.CustomerState.staying;
-				stateChanged();
-			}
+	public void msgIWantFood(Customer cust) {
+		synchronized(waitingCustomers){
+			waitingCustomers.add(new MyCustomer(cust));
+			Do("Got customer " + waitingCustomers.size());
+			stateChanged();
 		}
 	}
 
-	public void msgTableIsFree(CustomerAgent cust, int tablenumber) {
-		for (Table table : tables) {
-			if (table.tableNumber == tablenumber) {
-				print(cust + " leaving " + table);
-				table.setUnoccupied();
-				stateChanged();
+	public void msgIAmLeaving(Customer cust) {
+		synchronized(waitingCustomers){
+			for (MyCustomer customer : waitingCustomers) {
+				if (customer.customer == cust) {
+					print(cust + " want to leave");
+					waitingCustomers.remove(customer);
+					stateChanged();
+					return;
+				}
 			}
 		}
 	}
 	
-	public void msgWantToBreak(WaiterAgent w){
-		for (MyWaiter waiter : waiters) {
-			if (waiter.w == w) {
-				print(w.getName() + " want to break");
-				waiter.state = MyWaiter.WaiterState.askingForBreak;
-				stateChanged();
+	public void msgIWantToStay(Customer cust) {
+		synchronized(waitingCustomers){
+			for (MyCustomer customer : waitingCustomers) {
+				if (customer.customer == cust) {
+					print(cust + " want to stay");
+					customer.state = MyCustomer.CustomerState.staying;
+					stateChanged();
+					return;
+				}
+			}
+		}
+	}
+
+	public void msgTableIsFree(Customer cust, int tablenumber) {
+		synchronized(tables){
+			for (Table table : tables) {
+				if (table.tableNumber == tablenumber) {
+					print(cust + " leaving " + table);
+					table.setUnoccupied();
+					stateChanged();
+					return;
+				}
 			}
 		}
 	}
 	
-	public void msgWantToComeBack(WaiterAgent w){
-		waiters.add(new MyWaiter(w));
-		stateChanged();
+	public void msgWantToBreak(Waiter w){
+		synchronized(waiters){
+			for (MyWaiter waiter : waiters) {
+				if (waiter.w == w) {
+					print(w + " want to break");
+					waiter.state = MyWaiter.WaiterState.askingForBreak;
+					stateChanged();
+				}
+			}
+		}
+	}
+	
+	public void msgWantToComeBack(Waiter w){
+		synchronized(waiters){
+			waiters.add(new MyWaiter(w));
+			stateChanged();
+		}
 	}
 
 	/**
 	 * Scheduler.  Determine what action is called for, and do it.
 	 */
-	protected boolean pickAndExecuteAnAction() {
+	public boolean pickAndExecuteAnAction() {
 		try{
-			for (MyWaiter waiter : waiters) {
-				if (waiter.state == MyWaiter.WaiterState.askingForBreak && waiters.size() > 1) {
-					Do("Break granted");
-					waiter.w.msgBreakGranted();
-					waiters.remove(waiter);
-					return true;
+			synchronized(waiters){
+				for (MyWaiter waiter : waiters) {
+					if (waiter.state == MyWaiter.WaiterState.askingForBreak && waiters.size() > 1) {
+						Do("Break granted");
+						waiter.w.msgBreakGranted();
+						waiters.remove(waiter);
+						return true;
+					}
 				}
 			}
 			boolean hasEmptyTable = false;
-			for (Table table : tables) {
-				if (!table.isOccupied()) {
-					hasEmptyTable = true;
-					for (MyCustomer customer : waitingCustomers) {
-						if (waiters.size() != 0){
-							if (customer.state == MyCustomer.CustomerState.waiting ||
-									customer.state == MyCustomer.CustomerState.staying) {
-								seatCustomer(customer.customer, table);
-								waitingCustomers.remove(customer);
-								return true;
+			synchronized(tables){
+				for (Table table : tables) {
+					if (!table.isOccupied()) {
+						hasEmptyTable = true;
+						synchronized(waitingCustomers){
+							for (MyCustomer customer : waitingCustomers) {
+								if (waiters.size() != 0){
+									if (customer.state == MyCustomer.CustomerState.waiting ||
+											customer.state == MyCustomer.CustomerState.staying) {
+										seatCustomer(customer.customer, table);
+										waitingCustomers.remove(customer);
+										return true;
+									}
+								}
 							}
 						}
 					}
 				}
 			}
 			if (!hasEmptyTable){
-				for (MyCustomer customer : waitingCustomers){
-					if(customer.state == MyCustomer.CustomerState.waiting){
-						customer.customer.msgNoSeat();
-						customer.state = MyCustomer.CustomerState.deciding;
-						return true;
+				synchronized(waitingCustomers){
+					for (MyCustomer customer : waitingCustomers){
+						if(customer.state == MyCustomer.CustomerState.waiting){
+							customer.customer.msgNoSeat();
+							customer.state = MyCustomer.CustomerState.deciding;
+							return true;
+						}
 					}
 				}
 			}
@@ -154,12 +179,12 @@ public class HostAgent extends Agent {
 
 	// Actions
 
-	private void seatCustomer(CustomerAgent customer, Table table) {
+	private void seatCustomer(Customer customer, Table table) {
 		if (waiterNumber < waiters.size() - 1)
 			waiterNumber++;
 		else
 			waiterNumber = 0;
-		Do("Telling waiter " + waiterNumber + " " + waiters.get(waiterNumber).w.getName() + " to seat customer");
+		Do("Telling waiter " + waiterNumber + " " + waiters.get(waiterNumber).w + " to seat customer");
 		waiters.get(waiterNumber).w.msgSitAtTable(customer, table.tableNumber);
 		table.setOccupant(customer);
 	}
@@ -175,23 +200,19 @@ public class HostAgent extends Agent {
 	}
 
 	private class Table {
-		CustomerAgent occupiedBy;
+		Customer occupiedBy;
 		int tableNumber;
 
 		Table(int tableNumber) {
 			this.tableNumber = tableNumber;
 		}
 
-		void setOccupant(CustomerAgent cust) {
+		void setOccupant(Customer cust) {
 			occupiedBy = cust;
 		}
 
 		void setUnoccupied() {
 			occupiedBy = null;
-		}
-
-		CustomerAgent getOccupant() {
-			return occupiedBy;
 		}
 
 		boolean isOccupied() {
@@ -204,23 +225,23 @@ public class HostAgent extends Agent {
 	}
 	
 	public static class MyWaiter{
-		WaiterAgent w;
+		Waiter w;
 		public enum WaiterState
 		{none, askingForBreak};
 		private WaiterState state = WaiterState.none;
 		
-		MyWaiter(WaiterAgent w){
+		MyWaiter(Waiter w){
 			this.w = w;
 		}
 	}
 	
 	public static class MyCustomer{
-		CustomerAgent customer;
+		Customer customer;
 		public enum CustomerState
 		{waiting, deciding, staying};
 		private CustomerState state;
 		
-		MyCustomer(CustomerAgent cust){
+		MyCustomer(Customer cust){
 			this.customer = cust;
 			this.state = CustomerState.waiting;
 		}

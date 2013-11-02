@@ -1,17 +1,18 @@
 package restaurant;
 
 import restaurant.gui.CustomerGui;
-import restaurant.Menu;
 import agent.Agent;
-import restaurant.WaiterAgent;
-import restaurant.HostAgent;
+import restaurant.interfaces.*;
+import restaurant.test.mock.EventLog;
 
 import java.util.*;
 import java.util.concurrent.Semaphore;
+
 /**
  * Restaurant customer agent.
  */
-public class CustomerAgent extends Agent {
+public class CustomerAgent extends Agent implements Customer{
+	public EventLog log = new EventLog();
 	private String name;
 	private int hungerLevel = 5;        // determines length of meal
 	Timer timer = new Timer();
@@ -21,7 +22,7 @@ public class CustomerAgent extends Agent {
 	private HostAgent host;
 	private WaiterAgent waiter;
 	private CashierAgent cashier = null;
-	private static Menu menu = null;
+	private Menu menu = null;
 	private String choice;
 	private double money, check, debt = 0;
 	private int seatnumber;
@@ -29,7 +30,7 @@ public class CustomerAgent extends Agent {
 	Random r = new Random();
 	
 	public enum AgentState
-	{DoingNothing, WaitingInRestaurant, decideToLeave, BeingSeated, Seated, ReadyToOrder, 
+	{DoingNothing, WaitingInRestaurant, StillWaitingInRestaurant, BeingSeated, Seated, ReadyToOrder, 
 		GivenOrder, Eating, DoneEating, waitingForBill, waitingForChange, Leaving};
 	private AgentState state = AgentState.DoingNothing;//The start state
 
@@ -89,13 +90,15 @@ public class CustomerAgent extends Agent {
 		stateChanged();
 	}
 
-	public void msgFollowMe(WaiterAgent w, int tablenumber, Menu menu) {
-		print("Received msgSitAtTable");
-		this.waiter = w;
-		this.menu = menu;
-		seatnumber = tablenumber;
-		event = AgentEvent.followHost;
-		stateChanged();
+	public void msgFollowMe(Waiter w, int tablenumber, Menu menu) {
+		if (w instanceof WaiterAgent){
+			print("Received msgSitAtTable");
+			this.waiter = (WaiterAgent)w;
+			this.menu = menu;
+			seatnumber = tablenumber;
+			event = AgentEvent.followHost;
+			stateChanged();
+		}
 	}
 	
 	public void msgNoFood(Menu menu){
@@ -117,12 +120,14 @@ public class CustomerAgent extends Agent {
 		stateChanged();
 	}
 	
-	public void msgHereIsTheCheck(double money, CashierAgent cashier){
-		print("Received check of " + money);
-		event = AgentEvent.billArrived;
-		this.cashier = cashier;
-		this.check = money;
-		stateChanged();
+	public void msgHereIsTheCheck(double money, Cashier cashier){
+		if (cashier instanceof CashierAgent){
+			print("Received check of " + money);
+			event = AgentEvent.billArrived;
+			this.cashier = (CashierAgent) cashier;
+			this.check = money;
+			stateChanged();
+		}
 	}
 	
 	public void msgHereIsTheChange(double change){
@@ -163,7 +168,7 @@ public class CustomerAgent extends Agent {
 	/**
 	 * Scheduler.  Determine what action is called for, and do it.
 	 */
-	protected boolean pickAndExecuteAnAction() {
+	public boolean pickAndExecuteAnAction() {
 		//	CustomerAgent is a finite state machine
 		try{
 			if (state == AgentState.DoingNothing && event == AgentEvent.gotHungry ){
@@ -172,19 +177,14 @@ public class CustomerAgent extends Agent {
 				return true;
 			}
 			else if (state == AgentState.WaitingInRestaurant && event == AgentEvent.noSeat){
-				state = AgentState.decideToLeave;
 				ThinkAboutLeaving();
 				return true;
 			}
-			else if (state == AgentState.decideToLeave && event == AgentEvent.toStay){
-				state = AgentState.WaitingInRestaurant;
+			else if (state == AgentState.StillWaitingInRestaurant && event == AgentEvent.followHost){
+				state = AgentState.BeingSeated;
+				SitDown();
 				return true;
-			}
-			else if (state == AgentState.decideToLeave && event == AgentEvent.toLeave){
-				state = AgentState.Leaving;
-				leaveRestaurant();
-				return true;
-			}
+			}			
 			else if (state == AgentState.WaitingInRestaurant && event == AgentEvent.followHost){
 				state = AgentState.BeingSeated;
 				SitDown();
@@ -256,21 +256,30 @@ public class CustomerAgent extends Agent {
 
 	private void goToRestaurant() {
 		Do("Going to restaurant");
+		customerGui.DoGoWaiting();
+		try {
+			atTable.acquire();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		host.msgIWantFood(this);//send our instance, so he can respond to us
 	}
 	
 	private void ThinkAboutLeaving(){
 		Do("Think about whether to stay waiting or to leave.");
 		int choice = r.nextInt(2);
+		Do("The random number is " + choice);
 		if (choice == 0){
-			event = AgentEvent.toLeave;
+			Do("I want to leave the restaurant");
 			host.msgIAmLeaving(this);
 			Do("I want to leave the restaurant");
+			state = AgentState.Leaving;
+			leaveRestaurant();
 		}
 		else{
-			event = AgentEvent.toStay;
 			host.msgIWantToStay(this);
 			Do("I want to stay in the restaurant");
+			state = AgentState.StillWaitingInRestaurant;
 		}
 	}
 

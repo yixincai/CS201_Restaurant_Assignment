@@ -6,19 +6,19 @@ import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
-import restaurant.CookAgent.*;
-import restaurant.CustomerAgent;
 import restaurant.HostAgent;
 import restaurant.Menu;
 import restaurant.gui.*;
 import agent.Agent;
+import restaurant.interfaces.*;
+import restaurant.test.mock.EventLog;
 
-public class WaiterAgent extends Agent {
-
+public class WaiterAgent extends Agent implements Waiter{
+	public EventLog log = new EventLog();
 	private List<MyCustomer> customers = Collections.synchronizedList(new ArrayList<MyCustomer>());
-	public CookAgent cook = null;
-	public HostAgent host = null;
-	public CashierAgent cashier = null;
+	public Cook cook = null;
+	public Host host = null;
+	public Cashier cashier = null;
 	public WaiterGui waiterGui = null;
 	private Semaphore atTable = new Semaphore(0,true);
 	//The four booleans below are for Gui purposes, they have NOTHING to do with agent design
@@ -63,21 +63,21 @@ public class WaiterAgent extends Agent {
 
 	// Messages
 
-	public void msgSitAtTable(CustomerAgent cust, int tablenumber) {
+	public void msgSitAtTable(Customer cust, int tablenumber) {
 		customers.add(new MyCustomer(cust, tablenumber, MyCustomer.CustomerState.waiting));
 		stateChanged();
 	}
 
-	public void msgNoMoneyAndLeaving(CustomerAgent cust){
+	public void msgNoMoneyAndLeaving(Customer cust){
 		for (MyCustomer c: customers) {
 			if (c.c == cust) {
 				c.state = MyCustomer.CustomerState.noMoney;
 				stateChanged();
 			}
-		}		
+		}
 	}
 
-	public void msgReadyToOrder(CustomerAgent cust) {
+	public void msgReadyToOrder(Customer cust) {
 		for (MyCustomer c: customers) {
 			if (c.c == cust) {
 				c.state = MyCustomer.CustomerState.readyToOrder;
@@ -86,7 +86,7 @@ public class WaiterAgent extends Agent {
 		}
 	}
 
-	public void msgHereIsTheChoice(CustomerAgent cust, String choice) {
+	public void msgHereIsTheChoice(Customer cust, String choice) {
 		for (MyCustomer c: customers) {
 			if (c.c == cust) {
 				c.choice = choice;
@@ -117,7 +117,7 @@ public class WaiterAgent extends Agent {
 		}
 	}
 
-	public void msgDoneEating(CustomerAgent cust) {
+	public void msgDoneEating(Customer cust) {
 		for (MyCustomer c: customers) {
 			if (c.c == cust) {
 				c.state = MyCustomer.CustomerState.finishedEating;
@@ -126,7 +126,7 @@ public class WaiterAgent extends Agent {
 		}
 	}
 
-	public void msgHereIsTheCheck(double money, CustomerAgent cust){
+	public void msgHereIsTheCheck(double money, Customer cust){
 		for (MyCustomer c: customers) {
 			if (c.c == cust) {
 				c.state = MyCustomer.CustomerState.checkComputed;
@@ -136,7 +136,7 @@ public class WaiterAgent extends Agent {
 		}
 	}
 
-	public void msgLeavingRestaurant(CustomerAgent cust){
+	public void msgLeavingRestaurant(Customer cust){
 		for (MyCustomer c: customers) {
 			if (c.c == cust) {
 				c.state = MyCustomer.CustomerState.leaving;
@@ -168,7 +168,7 @@ public class WaiterAgent extends Agent {
 	/**
 	 * Scheduler.  Determine what action is called for, and do it.
 	 */
-	protected boolean pickAndExecuteAnAction() {
+	public boolean pickAndExecuteAnAction() {
 		try{
 			if (breakRequest){
 				Do("Tell host to break");
@@ -240,7 +240,7 @@ public class WaiterAgent extends Agent {
 		catch(ConcurrentModificationException e){
 			return false;
 		}
-
+		DoGoHome();
 		return false;
 		//we have tried all our rules and found
 		//nothing to do. So return false to main loop of abstract agent
@@ -289,7 +289,7 @@ public class WaiterAgent extends Agent {
 	}
 
 	private void giveOrderToCustomer(MyCustomer customer){
-		DoGoToCook();
+		DoFetchPlate();
 		Do("Give order to customer");
 		customer.state = MyCustomer.CustomerState.none;
 		DoGiveFoodToCustomer(customer.c, customer.tableNumber, customer.choice);
@@ -314,25 +314,27 @@ public class WaiterAgent extends Agent {
 		customers.remove(customer);
 	}
 
-	private void DoSeatCustomer(CustomerAgent customer, int table){
+	private void DoSeatCustomer(Customer customer, int table){
 		print("Seating " + customer + " at " + table);
-		waiterGui.DoGoToTable(customer, table);
+		waiterGui.DoGoToTable(table);
 		try {
 			atTable.acquire();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		waiterGui.DoLeaveCustomer();
 	}
 
-	private void DoGoToCustomer(CustomerAgent customer, int table){
+	private void DoGoToCustomer(Customer customer, int table){
 		print("Going to " + customer + " at " + table);
-		waiterGui.DoGoToTable(customer, table);
+		waiterGui.DoGoToTable(table);
 		try {
 			atTable.acquire();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private void DoGoHome(){
 		waiterGui.DoLeaveCustomer();
 	}
 
@@ -346,15 +348,24 @@ public class WaiterAgent extends Agent {
 		}
 	}
 
-	private void DoGiveFoodToCustomer(CustomerAgent customer, int table, String food){
-		print("Giving food to " + customer + " at " + table);
-		waiterGui.DoBringFood(customer, table, food);
+	private void DoFetchPlate(){
+		print("Fetching the food.");
+		waiterGui.DoFetchDish();
 		try {
 			atTable.acquire();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		waiterGui.DoLeaveCustomer();
+	}
+	
+	private void DoGiveFoodToCustomer(Customer customer, int table, String food){
+		print("Giving food to " + customer + " at " + table);
+		waiterGui.DoBringFood(table, food);
+		try {
+			atTable.acquire();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 
 	//utilities
@@ -368,7 +379,7 @@ public class WaiterAgent extends Agent {
 	}
 
 	private static class MyCustomer {
-		CustomerAgent c;
+		Customer c;
 		int tableNumber;
 		String choice = "";
 		double check = 0;
@@ -377,7 +388,7 @@ public class WaiterAgent extends Agent {
 			orderGiven, orderReady, noFood, finishedEating, checkComputed, leaving};
 			private CustomerState state = CustomerState.none;
 
-			MyCustomer(CustomerAgent c, int tableNumber, CustomerState s) {
+			MyCustomer(Customer c, int tableNumber, CustomerState s) {
 				this.c = c;
 				this.tableNumber = tableNumber;
 				this.state = s;

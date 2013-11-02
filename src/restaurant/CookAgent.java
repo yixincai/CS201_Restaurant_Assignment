@@ -1,20 +1,23 @@
 package restaurant;
 
 import agent.Agent;
-import restaurant.WaiterAgent;
 import restaurant.gui.*;
+import restaurant.interfaces.*;
+import restaurant.test.mock.EventLog;
 
 import java.util.*;
+import java.util.concurrent.Semaphore;
 
-public class CookAgent extends Agent{
+public class CookAgent extends Agent implements Cook{
+	public EventLog log = new EventLog();
     private String name = "TheBestCook";
-    public List<MarketAgent> markets = new ArrayList<MarketAgent>();
-    int market_index = 0;
+    public List<MyMarket> markets = new ArrayList<MyMarket>();
 	public List<Order> orders = Collections.synchronizedList(new ArrayList<Order>());
 	public Map<String, Food> inventory = new HashMap<String, Food>();
 	Timer timer = new Timer();
 	public CookGui cookGui = null;
-	boolean lowInFood = false;
+	boolean lowInFood = true;
+	private Semaphore atTable = new Semaphore(0,true);
 	
 	public CookAgent() {
 		super();
@@ -33,11 +36,15 @@ public class CookAgent extends Agent{
 	}
 
 	public void addMarket(MarketAgent market) {
-		markets.add(market);
+		markets.add(new MyMarket(market));
 	}
 	
 	// Messages
-	public void msgHereIsTheOrder(WaiterAgent w, String choice, int table) {
+	public void releaseSemaphore(){
+		atTable.release();
+	}
+	
+	public void msgHereIsTheOrder(Waiter w, String choice, int table) {
 		Do("Order received");
 		orders.add(new Order(w,choice,table,Order.OrderState.NotCooked));
 		stateChanged();
@@ -48,8 +55,17 @@ public class CookAgent extends Agent{
 		stateChanged();
 	}
 	
-	public void msgOrderFulfillment(Map<String, Integer> order){
+	public void msgOrderFulfillment(Market m, Map<String, Integer> order){
 		print("Market response received");
+		for (MyMarket market : markets){
+			if (market.market == m){
+				if (order.get("Steak") == 0 && order.get("Chicken") == 0 
+						&& order.get("Pizza") ==0 && order.get("Salad") == 0){
+					market.state = MyMarket.MarketState.Empty;
+				}
+				break;
+			}
+		}
 		inventory.get("Steak").amount += order.get("Steak");
 		inventory.get("Chicken").amount += order.get("Chicken");
 		inventory.get("Pizza").amount += order.get("Pizza");
@@ -67,7 +83,7 @@ public class CookAgent extends Agent{
 	/**
 	 * Scheduler.  Determine what action is called for, and do it.
 	 */
-	protected boolean pickAndExecuteAnAction() {
+	public boolean pickAndExecuteAnAction() {
 		try{
 			for (Order order : orders){
 				if (order.state == Order.OrderState.Cooked){
@@ -82,18 +98,19 @@ public class CookAgent extends Agent{
 				}
 			}
 			if(lowInFood){
-				if (market_index < markets.size() - 1)
-					market_index++;
-				else
-					market_index = 0;
-				lowInFood = false;
-				askForSupply();
+				for (MyMarket market : markets){
+					if (market.state == MyMarket.MarketState.NotEmpty){
+						askForSupply(market);
+						lowInFood = false;
+						return true;
+					}
+				}
 			}
 		}
 		catch(ConcurrentModificationException e){
 			return false;
 		}
-
+		GoHome();
 		return false;
 		//we have tried all our rules and found
 		//nothing to do. So return false to main loop of abstract agent
@@ -102,7 +119,7 @@ public class CookAgent extends Agent{
 
 	// Actions
 	
-	private void askForSupply(){
+	private void askForSupply(MyMarket market){
 		Do("Buy food from market.");
 		Map<String, Integer> order = new HashMap<String, Integer>();
 		if (inventory.get("Steak").amount <= inventory.get("Steak").threshold)
@@ -121,7 +138,7 @@ public class CookAgent extends Agent{
 			order.put("Pizza", inventory.get("Pizza").capacity - inventory.get("Pizza").amount);
 		else
 			order.put("Pizza", 0);
-		markets.get(market_index).msgHereIsTheOrder(order);
+		market.market.msgHereIsTheOrder(order);
 	}
 
 	private void cookOrder(final Order order) {
@@ -135,10 +152,11 @@ public class CookAgent extends Agent{
 			orders.remove(order);
 			return;
 		}
-		DoCooking(order.choice);
+		DoGoToFridge();
 		order.state = Order.OrderState.Cooking;
 		final long time = f.cookingTime;
 		f.amount--;
+		DoCooking(order.choice);
 		timer.schedule(new TimerTask() {
 			public void run() {
 				print("Cooking " + order.choice + " with time of " + time);
@@ -149,27 +167,56 @@ public class CookAgent extends Agent{
 
 	private void returnOrder(Order order) {
 		Do("The order is ready");
+		DoGoToPlate();
 		order.w.msgOrderIsReady(order.choice, order.tableNumber);
 		orders.remove(order);
+	}
+	
+	private void GoHome(){
+		cookGui.DoGoHome();
 	}
 	
 	// The animation DoXYZ() routines
 	private void DoCooking(String choice) {
 		print("Cooking " + choice);
 		cookGui.DoCookFood(); 
+		try{
+			atTable.acquire();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 
+	private void DoGoToFridge() {
+		print("Going to fridge");
+		cookGui.DoGoToFridge();
+		try{
+			atTable.acquire();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void DoGoToPlate() {
+		print("Going to plating area");
+		cookGui.DoPutPlate();
+		try{
+			atTable.acquire();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
 	//utilities
 
 	public static class Order {
 		String choice;
 		int tableNumber;
-		WaiterAgent w;
+		Waiter w;
 		public enum OrderState
 		{None, NotCooked, Cooking, Cooked, Delivered};
 		private OrderState state = OrderState.None;
 		
-		Order(WaiterAgent w, String choice, int tableNumber, OrderState state) {
+		Order(Waiter w, String choice, int tableNumber, OrderState state) {
 			this.choice = choice;
 			this.tableNumber = tableNumber;
 			this.w = w;
@@ -191,6 +238,18 @@ public class CookAgent extends Agent{
 			this.amount = amount;
 			this.threshold = threshold;
 			this.capacity = capacity;
+		}
+	}
+	
+	public static class MyMarket{
+		Market market;
+		public enum MarketState
+		{NotEmpty, Empty};
+		MarketState state;
+		
+		MyMarket(Market m){
+			this.market = m;
+			this.state = MarketState.NotEmpty;
 		}
 	}
 }
