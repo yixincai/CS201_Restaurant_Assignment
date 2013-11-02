@@ -22,6 +22,7 @@ public class RestaurantPanel extends JPanel{
     private CashierAgent cashier = new CashierAgent();
     private CashierGui cashierGui = new CashierGui(cashier);
 
+    private int waiter_count = 0;
     //private WaiterAgent waiter = new WaiterAgent("Mike");
     //private WaiterGui waiterGui = new WaiterGui(waiter);
     
@@ -53,10 +54,13 @@ public class RestaurantPanel extends JPanel{
         //waiter.setCashier(cashier);
         cook.addMarket(market1);
         market1.setCook(cook);
+        market1.setCashier(cashier);
         cook.addMarket(market2);
         market2.setCook(cook);
+        market2.setCashier(cashier);
         cook.addMarket(market3);
         market3.setCook(cook);
+        market3.setCashier(cashier);
         
         //waiters.add(waiter);
         //waiterPanel.addFirstPerson("Mike");
@@ -176,8 +180,8 @@ public class RestaurantPanel extends JPanel{
     	else if (type.equals("Waiters")) {
     		System.out.println("waiter added");
     		WaiterAgent w = new WaiterAgent(name);	
-    		WaiterGui g = new WaiterGui(w, gui);
-
+    		WaiterGui g = new WaiterGui(w, gui, waiter_count);
+    		waiter_count++;
     		w.setGui(g);
     		w.setHost(host);
     		w.setCook(cook);

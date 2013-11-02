@@ -1,7 +1,5 @@
 package restaurant.gui;
 
-
-import restaurant.CustomerAgent;
 import restaurant.WaiterAgent;
 
 import java.awt.*;
@@ -13,14 +11,16 @@ public class WaiterGui extends JPanel implements Gui {
     private WaiterAgent agent = null;
     private boolean show_choice = false;
     private String food;
-	public static final int xTable1 = 200, xTable2 = 300, xTable3 = 100, xCook = 300, yCook = 250, xPlace = 200, yPlace = 50;
-    private int xPos = 200, yPos = 50;//default waiter position
-    private int xDestination = 200, yDestination = 50;//default start position
+	public static final int xTable1 = 200, xTable2 = 300, xTable3 = 100;
+	public static final int xPlate=100, xCook = 200, yCook = 250;
+	private static int xPlace, yPlace = 90;//default waiter position
+    private int xPos, yPos = 90;//waiter current position
+    private int xDestination, yDestination = 90;//destination
     public static int xTable = 200;
     public static int yTable = 150;
     public static int xGap = 30;
     public static int yGap = 30;
-    
+    int count;
     private ImageIcon i = new ImageIcon("image/waiter.png");
     private Image image = i.getImage();
     
@@ -29,9 +29,13 @@ public class WaiterGui extends JPanel implements Gui {
 	private enum Command {noCommand, GoToSeat};
 	private Command command=Command.noCommand;
     
-    public WaiterGui(WaiterAgent agent, RestaurantGui gui) {
+    public WaiterGui(WaiterAgent agent, RestaurantGui gui, int count) {
         this.agent = agent;
         this.gui = gui;
+        this.count = count;
+        xPlace = 100 + count*50;
+        xPos = xPlace;
+        xDestination = xPos;
     }
 
     public void updatePosition() {
@@ -44,7 +48,6 @@ public class WaiterGui extends JPanel implements Gui {
         else if (yPos > yDestination)
             yPos--;
         if (yPos == yDestination && xPos == xDestination && command == Command.GoToSeat){
-        	System.out.println("release semaphore");
         	command = Command.noCommand;
             show_choice = false;
         	agent.releaseSemaphore();
@@ -66,8 +69,7 @@ public class WaiterGui extends JPanel implements Gui {
     	gui.setWaiterEnabled(agent);
     }
     
-    public void DoGoToTable(CustomerAgent customer, int table_number) {
-    	
+    public void DoGoToTable(int table_number) {
 		if (table_number == 1){
 			xTable = xTable1;
 		}
@@ -82,7 +84,7 @@ public class WaiterGui extends JPanel implements Gui {
         command = Command.GoToSeat;
     }
     
-    public void DoBringFood(CustomerAgent customer, int table_number, String food) {
+    public void DoBringFood(int table_number, String food) {
     	
 		if (table_number == 1){
 			xTable = xTable1;
@@ -105,15 +107,21 @@ public class WaiterGui extends JPanel implements Gui {
         yDestination = yCook - yGap;
         command = Command.GoToSeat;
     }
+    
+    public void DoFetchDish() {
+    	xDestination = xPlate;
+        yDestination = yCook - yGap;
+        command = Command.GoToSeat;
+    }
 
     public void DoLeaveCustomer() {
-    	xDestination = xPlace;
+    	xDestination = 100+count*50;
         yDestination = yPlace;
     }
     
     public void DoFetchCustomer() {
-        xDestination = -xGap;
-        yDestination = -yGap;
+        xDestination = 50+xGap;
+        yDestination = 50+yGap;
         command = Command.GoToSeat;
     }
 
