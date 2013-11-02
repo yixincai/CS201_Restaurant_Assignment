@@ -13,7 +13,7 @@ public class CashierGui extends JPanel implements Gui {
     public static int xGap = 40;
     public static int yGap = 40;
     
-    private ImageIcon i = new ImageIcon("image/host.png");
+    private ImageIcon i = new ImageIcon("image/cashier.jpg");
     private Image image = i.getImage();
     public CashierGui(CashierAgent agent) {
         this.agent = agent;

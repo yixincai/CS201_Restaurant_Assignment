@@ -54,9 +54,9 @@ public class HostAgent extends Agent implements Host{
 
 	// Messages
 
-	public void msgIWantFood(Customer cust) {
+	public void msgIWantFood(Customer cust, int count) {
 		synchronized(waitingCustomers){
-			waitingCustomers.add(new MyCustomer(cust));
+			waitingCustomers.add(new MyCustomer(cust, count));
 			Do("Got customer " + waitingCustomers.size());
 			stateChanged();
 		}
@@ -145,7 +145,7 @@ public class HostAgent extends Agent implements Host{
 								if (waiters.size() != 0){
 									if (customer.state == MyCustomer.CustomerState.waiting ||
 											customer.state == MyCustomer.CustomerState.staying) {
-										seatCustomer(customer.customer, table);
+										seatCustomer(customer.customer, table, customer.count);
 										waitingCustomers.remove(customer);
 										return true;
 									}
@@ -179,13 +179,13 @@ public class HostAgent extends Agent implements Host{
 
 	// Actions
 
-	private void seatCustomer(Customer customer, Table table) {
+	private void seatCustomer(Customer customer, Table table, int count) {
 		if (waiterNumber < waiters.size() - 1)
 			waiterNumber++;
 		else
 			waiterNumber = 0;
 		Do("Telling waiter " + waiterNumber + " " + waiters.get(waiterNumber).w + " to seat customer");
-		waiters.get(waiterNumber).w.msgSitAtTable(customer, table.tableNumber);
+		waiters.get(waiterNumber).w.msgSitAtTable(customer, table.tableNumber, count);
 		table.setOccupant(customer);
 	}
 
@@ -240,10 +240,11 @@ public class HostAgent extends Agent implements Host{
 		public enum CustomerState
 		{waiting, deciding, staying};
 		private CustomerState state;
-		
-		MyCustomer(Customer cust){
+		int count;
+		MyCustomer(Customer cust, int count){
 			this.customer = cust;
 			this.state = CustomerState.waiting;
+			this.count = count;
 		}
 	}
 }

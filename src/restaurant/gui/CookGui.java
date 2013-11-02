@@ -16,24 +16,41 @@ public class CookGui extends JPanel implements Gui{
 	private CookAgent agent;
     private ImageIcon i = new ImageIcon("image/cook.jpg");
     private Image image = i.getImage();
-    private String fridge = "refrigerator", cooking = "cooking", plating = "plating";
+    private ImageIcon ifridge = new ImageIcon("image/fridge.png");
+    private Image fridgeimage = ifridge.getImage();
+    private ImageIcon i2 = new ImageIcon("image/host.png");
+    private Image plateimage = i2.getImage();
+    private ImageIcon igrill = new ImageIcon("image/grill.jpg");
+    private Image grillimage = igrill.getImage();    
+    private String food = "";
+    private boolean show_food = false;
     
 	CookGui(CookAgent c){
 		this.agent = c;
 	}
 
-    private int xPos = 200, yPos = 250, xPlate = 100, xCooking = 200, xFridge = 300;//default cook position
-    private int xDestination = 100, yDestination = 250;
+    private int xPos = 200, yPos = 290, xPlate = 100, xCooking = 200, xFridge = 300;//default cook position
+    private int xDestination = 100, yDestination = 290;
     public static int xGap = 30;
     public static int yGap = 30;
 	private enum Command {noCommand, GoToSeat};
 	private Command command=Command.noCommand;
 
-	public void DoCookFood(){
+	public void DoGoCookFood(){
     	xDestination = xCooking;
         command = Command.GoToSeat;
 	}
+	
+	public void DoCookFood(String choice){
+		this.food = choice;
+		show_food = true;
+	}
 
+	public void DoFinishFood(){
+		this.food = "";
+		show_food = false;
+	}
+	
 	public void DoGoToFridge(){
     	xDestination = xFridge;
         command = Command.GoToSeat;
@@ -67,9 +84,11 @@ public class CookGui extends JPanel implements Gui{
     public void draw(Graphics2D g) {
     	g.setColor(Color.BLUE);
     	g.drawImage(image, xPos, yPos, xGap, yGap, this);
-    	g.drawString(plating, xPlate, yPos - 10);
-    	g.drawString(cooking, xCooking, yPos - 10);
-    	g.drawString(fridge, xFridge, yPos - 10);
+    	g.drawImage(plateimage, xPlate - xGap, yPos-40, xGap, yGap, this);
+    	g.drawImage(grillimage, xCooking, yPos-40, xGap, yGap, this);
+    	g.drawImage(fridgeimage, xFridge + 30, yPos-40, xGap, yGap, this);
+    	if (show_food)
+    		g.drawString(food, xCooking, yPos - 50);
     }
 
     public boolean isPresent() {

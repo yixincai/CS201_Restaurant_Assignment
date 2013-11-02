@@ -119,9 +119,9 @@ public class WaiterGui extends JPanel implements Gui {
         yDestination = yPlace;
     }
     
-    public void DoFetchCustomer() {
-        xDestination = 50+xGap;
-        yDestination = 50+yGap;
+    public void DoFetchCustomer(int count) {
+		xDestination = 30 + xGap;
+		yDestination = count*30+15 + yGap;
         command = Command.GoToSeat;
     }
 

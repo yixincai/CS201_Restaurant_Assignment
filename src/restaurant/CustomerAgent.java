@@ -28,6 +28,7 @@ public class CustomerAgent extends Agent implements Customer{
 	private int seatnumber;
 	private static final long thinking_time = 3000, eating_time = 5000;
 	Random r = new Random();
+	public int count;
 	
 	public enum AgentState
 	{DoingNothing, WaitingInRestaurant, StillWaitingInRestaurant, BeingSeated, Seated, ReadyToOrder, 
@@ -45,10 +46,11 @@ public class CustomerAgent extends Agent implements Customer{
 	 * @param name name of the customer
 	 * @param gui  reference to the customergui so the customer can send it messages
 	 */
-	public CustomerAgent(String name){
+	public CustomerAgent(String name, int count){
 		super();
 		this.money = 0;
 		this.name = name;
+		this.count = count;
 	}
 
 	/**
@@ -262,7 +264,7 @@ public class CustomerAgent extends Agent implements Customer{
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		host.msgIWantFood(this);//send our instance, so he can respond to us
+		host.msgIWantFood(this,count);//send our instance, so he can respond to us
 	}
 	
 	private void ThinkAboutLeaving(){

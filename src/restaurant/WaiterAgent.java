@@ -63,8 +63,8 @@ public class WaiterAgent extends Agent implements Waiter{
 
 	// Messages
 
-	public void msgSitAtTable(Customer cust, int tablenumber) {
-		customers.add(new MyCustomer(cust, tablenumber, MyCustomer.CustomerState.waiting));
+	public void msgSitAtTable(Customer cust, int tablenumber, int count) {
+		customers.add(new MyCustomer(cust, tablenumber, MyCustomer.CustomerState.waiting, count));
 		stateChanged();
 	}
 
@@ -250,7 +250,7 @@ public class WaiterAgent extends Agent implements Waiter{
 	// Actions
 
 	private void seatCustomer(MyCustomer customer) {
-		waiterGui.DoFetchCustomer();
+		waiterGui.DoFetchCustomer(customer.count);
 		try {
 			atTable.acquire();
 		} catch (InterruptedException e) {
@@ -380,7 +380,7 @@ public class WaiterAgent extends Agent implements Waiter{
 
 	private static class MyCustomer {
 		Customer c;
-		int tableNumber;
+		int tableNumber, count;
 		String choice = "";
 		double check = 0;
 		public enum CustomerState
@@ -388,10 +388,11 @@ public class WaiterAgent extends Agent implements Waiter{
 			orderGiven, orderReady, noFood, finishedEating, checkComputed, leaving};
 			private CustomerState state = CustomerState.none;
 
-			MyCustomer(Customer c, int tableNumber, CustomerState s) {
+			MyCustomer(Customer c, int tableNumber, CustomerState s, int count) {
 				this.c = c;
 				this.tableNumber = tableNumber;
 				this.state = s;
+				this.count = count;
 			}
 
 			public String toString() {

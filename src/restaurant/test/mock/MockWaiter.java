@@ -9,7 +9,7 @@ public class MockWaiter extends Mock implements Waiter{
 		super(name);
 	}
 	
-	public void msgSitAtTable(Customer cust, int tablenumber){}
+	public void msgSitAtTable(Customer cust, int tablenumber, int count){}
 
 	public void msgNoMoneyAndLeaving(Customer cust){}
 

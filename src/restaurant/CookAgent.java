@@ -156,11 +156,13 @@ public class CookAgent extends Agent implements Cook{
 		order.state = Order.OrderState.Cooking;
 		final long time = f.cookingTime;
 		f.amount--;
-		DoCooking(order.choice);
+		DoGoToCookingPlace();
+		DoCookFood(order.choice);
 		timer.schedule(new TimerTask() {
 			public void run() {
 				print("Cooking " + order.choice + " with time of " + time);
 				msgDone(order);
+				cookGui.DoFinishFood();
 			}
 		}, time);
 	}
@@ -177,14 +179,19 @@ public class CookAgent extends Agent implements Cook{
 	}
 	
 	// The animation DoXYZ() routines
-	private void DoCooking(String choice) {
-		print("Cooking " + choice);
-		cookGui.DoCookFood(); 
+	private void DoGoToCookingPlace() {
+		print("Go Cooking.");
+		cookGui.DoGoCookFood();
 		try{
 			atTable.acquire();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private void DoCookFood(String choice){
+		print("Cooking " + choice);
+		cookGui.DoCookFood(choice);
 	}
 
 	private void DoGoToFridge() {

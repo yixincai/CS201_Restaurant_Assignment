@@ -19,7 +19,8 @@ public class CustomerGui extends JPanel implements Gui{
 	private int xDestination, yDestination;
 	private enum Command {noCommand, GoToSeat, LeaveRestaurant, GoToCashier};
 	private Command command=Command.noCommand;
-
+	private int count = 0;
+	
 	public static final int xTable1 = 200, xTable2 = 300, xTable3 = 100;
 	public static final int yTable = 150;
     private final int GAPX = 30;
@@ -33,7 +34,7 @@ public class CustomerGui extends JPanel implements Gui{
     private String choice;
     private boolean show_choice = false;
     
-	public CustomerGui(CustomerAgent c, RestaurantGui gui){ 
+	public CustomerGui(CustomerAgent c, RestaurantGui gui, int count){ 
 		agent = c;
 		xPos = OriginX;
 		yPos = OriginY;
@@ -41,6 +42,7 @@ public class CustomerGui extends JPanel implements Gui{
 		yDestination = OriginY;
 		//maitreD = m;
 		this.gui = gui;
+		this.count = count;
 	}
 
 	public void updatePosition() {
@@ -120,8 +122,8 @@ public class CustomerGui extends JPanel implements Gui{
 	public void DoGoWaiting() {
 		show_choice = false;
 		choice = "";
-		xDestination = 50;
-		yDestination = 50;
+		xDestination = 30;
+		yDestination = count*30+15;
 		command = Command.GoToCashier;
 	}
 	

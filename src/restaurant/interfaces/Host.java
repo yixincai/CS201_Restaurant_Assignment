@@ -2,7 +2,7 @@ package restaurant.interfaces;
 
 public interface Host {
 
-	public void msgIWantFood(Customer cust);
+	public void msgIWantFood(Customer cust, int count);
 
 	public void msgIAmLeaving(Customer cust);
 	

@@ -9,7 +9,7 @@ public class MockHost extends Mock implements Host{
 		super(name);
 	}
 	
-	public void msgIWantFood(Customer cust){}
+	public void msgIWantFood(Customer cust, int count){}
 
 	public void msgIAmLeaving(Customer cust){}
 	

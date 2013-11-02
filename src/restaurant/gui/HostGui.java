@@ -3,6 +3,7 @@ package restaurant.gui;
 import restaurant.HostAgent;
 
 import java.awt.*;
+
 import javax.swing.*;
 
 public class HostGui extends JPanel implements Gui {
@@ -12,9 +13,10 @@ public class HostGui extends JPanel implements Gui {
     private int xPos = 50, yPos = 20;//default waiter position
     public static int xGap = 40;
     public static int yGap = 40;
+    private String WA = "Waiting Area";
     
-    private ImageIcon i = new ImageIcon("image/host.png");
-    private Image image = i.getImage();
+    //private ImageIcon i = new ImageIcon("image/host.png");
+    //private Image image = i.getImage();
     public HostGui(HostAgent agent) {
         this.agent = agent;
     }
@@ -23,7 +25,8 @@ public class HostGui extends JPanel implements Gui {
     }
 
     public void draw(Graphics2D g) {
-    	//g.drawImage(image, xPos, yPos, xGap, yGap, this);
+    	g.setColor(Color.BLUE);
+    	g.drawString(WA, 30, 10);
     }
 
     public boolean isPresent() {

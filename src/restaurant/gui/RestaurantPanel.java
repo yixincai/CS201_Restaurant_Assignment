@@ -23,6 +23,7 @@ public class RestaurantPanel extends JPanel{
     private CashierGui cashierGui = new CashierGui(cashier);
 
     private int waiter_count = 0;
+    private int customer_count = 0;
     //private WaiterAgent waiter = new WaiterAgent("Mike");
     //private WaiterGui waiterGui = new WaiterGui(waiter);
     
@@ -148,9 +149,11 @@ public class RestaurantPanel extends JPanel{
 
     public void addPerson1(String type, String name) {
     	if (type.equals("Customers")) {
-    		CustomerAgent c = new CustomerAgent(name);	
-    		CustomerGui g = new CustomerGui(c, gui);
-
+    		CustomerAgent c = new CustomerAgent(name, customer_count);	
+    		CustomerGui g = new CustomerGui(c, gui,customer_count);
+    		customer_count++;
+    		if (customer_count > 10)
+    			customer_count = 0;
     		gui.animationPanel.addGui(g);// dw
     		c.setHost(host);
     		c.setGui(g);
@@ -168,9 +171,11 @@ public class RestaurantPanel extends JPanel{
     public void addPerson(String type, String name) {
 
     	if (type.equals("Customers")) {
-    		CustomerAgent c = new CustomerAgent(name);	
-    		CustomerGui g = new CustomerGui(c, gui);
-
+    		CustomerAgent c = new CustomerAgent(name,customer_count);
+    		CustomerGui g = new CustomerGui(c, gui, customer_count);
+    		customer_count++;
+    		if (customer_count > 10)
+    			customer_count = 0;
     		gui.animationPanel.addGui(g);// dw
     		c.setHost(host);
     		c.setGui(g);

@@ -4,7 +4,7 @@ import restaurant.interfaces.Customer;
 
 public interface Waiter {
 
-	public abstract void msgSitAtTable(Customer cust, int tablenumber);
+	public abstract void msgSitAtTable(Customer cust, int tablenumber, int count);
 
 	public abstract void msgNoMoneyAndLeaving(Customer cust);
 

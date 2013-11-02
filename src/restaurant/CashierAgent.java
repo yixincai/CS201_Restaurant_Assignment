@@ -121,9 +121,9 @@ public class CashierAgent extends Agent implements Cashier{
 			marketBills.remove(0);
 		}
 		else {
+			marketBills.get(0).balance -= money;
 			money = 0;
-			Do("Do not have enough money.");
-			bill.balance -= money;
+			Do("Do not have enough money with " + bill.balance +" debt");
 			bill.market.msgHereIsThePayment(bill.balance);
 		}
 	}
