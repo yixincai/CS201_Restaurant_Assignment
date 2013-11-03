@@ -9,7 +9,7 @@
   + Lab Section: W 12:00PM - 1:50PM
 
 ###Instructions for Running
-  + Import source code into Eclipse as well as images, then click run
+  + Import both src and images folder into a java project in Eclipse, also include JUnit 3 library. Click run to start the program.
 
 ###Design Document
   + [Design Document](DesignDoc.pdf)

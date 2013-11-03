@@ -127,7 +127,7 @@ public abstract class Agent {
 	                    //When the agent wakes up it will call respondToStateChange()
 	                    //repeatedly until it returns FALSE.
 	                    //You will see that pickAndExecuteAnAction() is the agent scheduler.
-	                    while (pickAndExecuteAnAction()) ;
+	                    while (pickAndExecuteAnAction()&&!paused) ;
 	                } catch (InterruptedException e) {
 	                    // no action - expected when stopping or when deadline changed
 	                } catch (Exception e) {
