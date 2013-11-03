@@ -40,7 +40,7 @@ public class CashierTest extends TestCase
 		assertEquals("Cashier should have 0 marketBills in it. It doesn't.",cashier.marketBills.size(), 0);
 		assertEquals("CashierAgent should have an empty event log before the Cashier's HereIsTheBill is called. Instead, the Cashier's event log reads: "
 						+ cashier.log.toString(), 0, cashier.log.size());
-		assertEquals("MockMarket 1 should have an empty event log before the Cashier's scheduler is called. Instead, the Cashier's event log reads: "
+		assertEquals("MockMarket 1 should have an empty event log before the Cashier's scheduler is called. Instead, the Market's event log reads: "
 				+ market1.log.toString(), 0, market1.log.size());
 		assertEquals("CashierAgent should have 130 dollars initially. Instead, the Cashier's balance is: "
 				+ cashier.money, 130.0, cashier.money);	
@@ -285,13 +285,13 @@ public class CashierTest extends TestCase
 		assertEquals("Cashier should have 0 marketBills in it. It doesn't.",cashier.marketBills.size(), 0);
 		assertEquals("CashierAgent should have an empty event log before the Cashier's HereIsBill is called. Instead, the Cashier's event log reads: "
 						+ cashier.log.toString(), 0, cashier.log.size());
-		assertEquals("MockCustomer 1 should have an empty event log before the Cashier's HereIsBill is called. Instead, the Cashier's event log reads: "
+		assertEquals("MockCustomer 1 should have an empty event log before the Cashier's HereIsBill is called. Instead, the Customer1's event log reads: "
 				+ customer1.log.toString(), 0, customer1.log.size());
-		assertEquals("MockCustomer 2 should have an empty event log before the Cashier's HereIsBill is called. Instead, the Cashier's event log reads: "
+		assertEquals("MockCustomer 2 should have an empty event log before the Cashier's HereIsBill is called. Instead, the Customer2's event log reads: "
 				+ customer2.log.toString(), 0, customer2.log.size());
-		assertEquals("MockWaiter 1 should have an empty event log before the Cashier's HereIsBill is called. Instead, the Cashier's event log reads: "
+		assertEquals("MockWaiter 1 should have an empty event log before the Cashier's HereIsBill is called. Instead, the Waiter1's event log reads: "
 				+ waiter1.log.toString(), 0, waiter1.log.size());
-		assertEquals("MockWaiter 2 should have an empty event log before the Cashier's HereIsBill is called. Instead, the Cashier's event log reads: "
+		assertEquals("MockWaiter 2 should have an empty event log before the Cashier's HereIsBill is called. Instead, the Waiter2's event log reads: "
 						+ waiter2.log.toString(), 0, waiter2.log.size());
 		
 		//send first message to cashier
@@ -479,4 +479,111 @@ public class CashierTest extends TestCase
 
 	}//end one non normal customer scenario
 
+	public void testCombinedCustomerAndMarketScenario()
+	{
+		//setUp() runs first before this test!
+
+		//check preconditions
+		assertEquals("Cashier should have 0 bills in it. It doesn't.",cashier.bills.size(), 0);
+		assertEquals("Cashier should have 0 marketBills in it. It doesn't.",cashier.marketBills.size(), 0);
+		assertEquals("CashierAgent should have an empty event log before the Cashier's HereIsTheBill is called. Instead, the Cashier's event log reads: "
+						+ cashier.log.toString(), 0, cashier.log.size());
+		assertEquals("MockMarket 1 should have an empty event log before the Cashier's scheduler is called. Instead, the MockMarket's event log reads: "
+				+ market1.log.toString(), 0, market1.log.size());
+		assertEquals("MockWaiter 1 should have an empty event log before the Cashier's scheduler is called. Instead, the MockWaiter's event log reads: "
+				+ waiter1.log.toString(), 0, market1.log.size());
+		assertEquals("MockCustomer 1 should have an empty event log before the Cashier's scheduler is called. Instead, the MockCustomer's event log reads: "
+				+ customer1.log.toString(), 0, customer1.log.size());
+		assertEquals("CashierAgent should have 130 dollars initially. Instead, the Cashier's balance is: "
+				+ cashier.money, 130.0, cashier.money);	
+
+		//send first message to cashier
+		cashier.msgComputeBill(waiter1, customer1, "Steak");//send the message from a waiter
+		assertEquals("Cashier should have 1 bills in it. It doesn't.",cashier.bills.size(), 1);
+		assertEquals("Bill should have the same waiter. It doesn't.",cashier.bills.get(0).waiter, waiter1);
+		assertEquals("Bill should have the same customer. It doesn't.",cashier.bills.get(0).customer, customer1);
+		assertEquals("Bill should have the NotComputed state. It doesn't.",cashier.bills.get(0).state, CashierAgent.CustomerBill.BillState.NotComputed);
+		assertEquals("Bill should have the correct choice as Steak. It doesn't.",cashier.bills.get(0).choice, "Steak");		
+		assertEquals("CashierAgent should have one line after the Cashier's ComputeBill is called. Instead, the Cashier's event log reads: "
+				+ cashier.log.toString(), 1, cashier.log.size());
+		assertTrue("Cashier should have logged an event for receiving \"ComputeBill\" with the correct change, but his last event logged reads instead: " 
+				+ cashier.log.getLastLoggedEvent().toString(), cashier.log.containsString("Received ComputeBill from waiter. Choice = Steak"));
+		assertEquals("MockWaiter should have an empty event log before the Cashier's scheduler is called. Instead, the MockWaiter's event log reads: "
+						+ waiter1.log.toString(), 0, waiter1.log.size());
+
+		//send second message to cashier
+		cashier.msgHereIsTheBill(market1, 100);//send the message from a waiter
+		assertEquals("Cashier should have 1 market bill in it. It doesn't.",cashier.marketBills.size(), 1);	
+		assertEquals("Cashier should have 1 customer bill in it. It doesn't.",cashier.bills.size(), 1);
+		assertEquals("Bill should have the same market. It doesn't.",cashier.marketBills.get(0).market, market1);
+		assertEquals("Bill should have the same amount. It doesn't.",cashier.marketBills.get(0).balance, 100.0);
+		assertEquals("CashierAgent should have two lines after the Cashier's ComputeBill is called. Instead, the Cashier's event log reads: "
+				+ cashier.log.toString(), 2, cashier.log.size());
+		assertTrue("Cashier should have logged an event for receiving \"HereIsTheBill\" with the correct change, but his last event logged reads instead: " 
+				+ cashier.log.getLastLoggedEvent().toString(), cashier.log.containsString("Received HereIsTheBill from market. Bill = "+ 100.0));
+		assertEquals("MockMarket should have an empty event log before the Cashier's scheduler is called. Instead, the MockMarket1's event log reads: "
+						+ market1.log.toString(), 0, market1.log.size());
+		
+		//run scheduler
+		assertTrue("Cashier's scheduler should have returned true, but didn't.", cashier.pickAndExecuteAnAction());
+		assertEquals("Cashier should have 1 bill in it. It doesn't.",cashier.bills.size(), 1);
+		assertEquals("CashierAgent should have two events in log after scheduler is called. Instead, the Cashier's event log reads: "
+				+ cashier.log.toString(), 2, cashier.log.size());		
+		assertEquals("MockWaiter should have an event in log after the Cashier's scheduler is called. Instead, the MockWaiter's event log reads: "
+						+ waiter1.log.toString(), 1, waiter1.log.size());
+		assertTrue("Waiter 1 should have logged an event for cashier's scheduler has been run, but his last event logged reads instead: " 
+				+ waiter1.log.getLastLoggedEvent().toString(), waiter1.log.containsString("Received HereIsTheCheck from cashier. Check = "+ 15.99));		
+		assertEquals("Bill should have the None state. It doesn't.",cashier.bills.get(0).state, CashierAgent.CustomerBill.BillState.None);
+		assertEquals("Bill should have the correct price of the food. It doesn't.",cashier.bills.get(0).price, 15.99);
+		
+
+		//run scheduler again
+		assertTrue("Cashier's scheduler should have returned true, but didn't.", cashier.pickAndExecuteAnAction());
+		assertEquals("Cashier should have 0 market bill after the sceduler has been run. It doesn't.",cashier.marketBills.size(), 0);
+		assertEquals("CashierAgent should have two events in log after scheduler is called. Instead, the Cashier's event log reads: "
+				+ cashier.log.toString(), 2, cashier.log.size());
+		assertEquals("MockMarket should have an event in log after the Cashier's scheduler is called. Instead, the MockMarket1's event log reads: "
+						+ market1.log.toString(), 1, market1.log.size());
+		assertTrue("MockMarket should have logged an event for receiving \"HereIsTheBill\" with the correct change, but his last event logged reads instead: " 
+				+ market1.log.getLastLoggedEvent().toString(), market1.log.containsString("Received HereIsThePayment from cashier. Check = "+ 100.0));
+		assertEquals("CashierAgent should have 30 remaining dollars. Instead, the Cashier's balance is: "
+				+ cashier.money, 30.0, cashier.money);
+		
+		//check postconditions for step 1 and preconditions for step 2
+		assertFalse("Cashier's scheduler should have returned false (no actions to do), but didn't.", cashier.pickAndExecuteAnAction());
+		assertEquals("CashierAgent should have two events in log after scheduler is called. Instead, the Cashier's event log reads: "
+				+ cashier.log.toString(), 2, cashier.log.size());
+		
+		//check preconditions for step 2
+		assertEquals("MockCustomer should have an empty event log before the Cashier's scheduler is called. Instead, the MockWaiter's event log reads: "
+				+ customer1.log.toString(), 0, customer1.log.size());
+		
+		//step 2 of the test
+		cashier.msgHereIsThePayment(customer1, 15.99, 20.0);
+		assertEquals("Cashier should have 1 bills in it. It doesn't.",cashier.bills.size(), 1);
+		assertEquals("Bill should have the same customer. It doesn't.",cashier.bills.get(0).customer, customer1);
+		assertEquals("Bill should have the ReturnedFromCustomer state. It doesn't.",cashier.bills.get(0).state, CashierAgent.CustomerBill.BillState.ReturnedFromCustomer);
+		assertEquals("Bill should have the correct payment. It doesn't.",cashier.bills.get(0).cash, 20.0);
+		assertEquals("CashierAgent should have three lines after the Cashier's ComputeBill is called. Instead, the Cashier's event log reads: "
+				+ cashier.log.toString(), 3, cashier.log.size());
+		assertTrue("Cashier should have logged an event for receiving \"HereIsThePayment\" with the correct change, but his last event logged reads instead: " 
+				+ cashier.log.getLastLoggedEvent().toString(), cashier.log.containsString("Received HereIsTheCheck from customer. Check = "+ 15.99 + " Payment = "+ 20.0));		
+		assertEquals("MockCustomer should have an empty event log before the Cashier's scheduler is called. Instead, the MockWaiter's event log reads: "
+				+ customer1.log.toString(), 0, customer1.log.size());
+		
+		//run scheduler
+		assertTrue("Cashier's scheduler should have returned true, but didn't.", cashier.pickAndExecuteAnAction());
+		assertEquals("There should be no bills in it. It doesn't.",cashier.bills.size(), 0);
+		assertEquals("CashierAgent should have three event in log after scheduler is called. Instead, the Cashier's event log reads: "
+				+ cashier.log.toString(), 3, cashier.log.size());		
+		assertEquals("MockCustomer should have an event in log after the Cashier's scheduler is called. Instead, the MockWaiter's event log reads: "
+						+ customer1.log.toString(), 1, customer1.log.size());
+		assertTrue("MockCustomer should have logged an event for receiving \"HereIsYourChange\" with the correct change, but his last event logged reads instead: " 
+				+ customer1.log.getLastLoggedEvent().toString(), customer1.log.containsString("Received HereIsTheChange from cashier. Change = " + 4.01));
+		
+		//check postconditions for step 1 and preconditions for step 2
+		assertFalse("Cashier's scheduler should have returned false (no actions to do), but didn't.", cashier.pickAndExecuteAnAction());
+
+	}//end one normal customer scenario
+	
 }
