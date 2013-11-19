@@ -1,7 +1,7 @@
 package restaurant.gui;
 
 import restaurant.CustomerAgent;
-import restaurant.WaiterAgent;
+import restaurant.WaiterAgent ;
 import javax.swing.*;
 
 import java.awt.*;
@@ -124,9 +124,9 @@ public class RestaurantGui extends JFrame implements ActionListener{
             infoLabel.setText(
                "<html><pre>     Customer: " + customer.getName() + " </pre></html>");
         }
-        else if (person instanceof WaiterAgent) {
+        else if (person instanceof WaiterAgent ) {
         	waiterStateB.setVisible(true);
-            WaiterAgent waiter = (WaiterAgent) person;
+            WaiterAgent  waiter = (WaiterAgent ) person;
             //waiterStateB.setText("Break?");
           //Should checkmark be there?
             if (waiter.getBreakStatus())
@@ -155,16 +155,16 @@ public class RestaurantGui extends JFrame implements ActionListener{
             }
         }
         else if (e.getSource() == waiterStateB && waiterStateB.getText().equals("Break")) {
-            if (currentPerson instanceof WaiterAgent) {
-                WaiterAgent w = (WaiterAgent) currentPerson;
+            if (currentPerson instanceof WaiterAgent ) {
+                WaiterAgent  w = (WaiterAgent ) currentPerson;
                 restPanel.AskForBreak(w);
                 waiterStateB.setEnabled(false);
                 waiterStateB.setText("Back");
             }
         }
         else if (e.getSource() == waiterStateB && waiterStateB.getText().equals("Back")) {
-            if (currentPerson instanceof WaiterAgent) {
-                WaiterAgent w = (WaiterAgent) currentPerson;
+            if (currentPerson instanceof WaiterAgent ) {
+                WaiterAgent  w = (WaiterAgent ) currentPerson;
                 restPanel.AskToComeBack(w);
                 waiterStateB.setText("Break");
             }
@@ -207,9 +207,9 @@ public class RestaurantGui extends JFrame implements ActionListener{
         }
     }
     
-    public void setWaiterEnabled(WaiterAgent w) {
-        if (currentPerson instanceof WaiterAgent) {
-            WaiterAgent waiter = (WaiterAgent) currentPerson;
+    public void setWaiterEnabled(WaiterAgent  w) {
+        if (currentPerson instanceof WaiterAgent ) {
+            WaiterAgent  waiter = (WaiterAgent ) currentPerson;
             if (w.equals(waiter)) {
             	waiterStateB.setEnabled(true);
             }

@@ -15,6 +15,7 @@ import java.util.Vector;
  */
 public class RestaurantPanel extends JPanel{
 
+	private Restaurant restaurant = new Restaurant();
     //Host, cook, waiters and customers
     private HostAgent host = new HostAgent("Sarah");
     private HostGui hostGui = new HostGui(host);
@@ -72,6 +73,7 @@ public class RestaurantPanel extends JPanel{
         //waiter.startThread();
         
         gui.animationPanel.addGui(cookGui);
+        cook.r = restaurant;
         cook.startThread();
         
         gui.animationPanel.addGui(cashierGui);
@@ -184,9 +186,16 @@ public class RestaurantPanel extends JPanel{
     	}
     	else if (type.equals("Waiters")) {
     		System.out.println("waiter added");
-    		WaiterAgent w = new WaiterAgent(name);	
+    		WaiterAgent w;
+    		if (name.contains("shared")){
+    			w = new SharedDataWaiterAgent(name);	
+    		}
+    		else{
+    			w = new NormalWaiterAgent(name);	
+    		}
     		WaiterGui g = new WaiterGui(w, gui, waiter_count);
     		waiter_count++;
+    		w.r = restaurant;
     		w.setGui(g);
     		w.setHost(host);
     		w.setCook(cook);

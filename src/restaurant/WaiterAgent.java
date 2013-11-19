@@ -13,7 +13,8 @@ import agent.Agent;
 import restaurant.interfaces.*;
 import restaurant.test.mock.EventLog;
 
-public class WaiterAgent extends Agent implements Waiter{
+public abstract class WaiterAgent extends Agent implements Waiter{
+	public Restaurant r;
 	public EventLog log = new EventLog();
 	private List<MyCustomer> customers = Collections.synchronizedList(new ArrayList<MyCustomer>());
 	public Cook cook = null;
@@ -281,12 +282,7 @@ public class WaiterAgent extends Agent implements Waiter{
 		customer.c.msgNoFood(m);
 	}
 
-	private void processOrder(MyCustomer customer){
-		Do("Process order");
-		customer.state = MyCustomer.CustomerState.none;
-		DoGoToCook();
-		cook.msgHereIsTheOrder(this, customer.choice, customer.tableNumber);
-	}
+	protected abstract void processOrder(MyCustomer customer);
 
 	private void giveOrderToCustomer(MyCustomer customer){
 		DoFetchPlate();
@@ -338,7 +334,7 @@ public class WaiterAgent extends Agent implements Waiter{
 		waiterGui.DoLeaveCustomer();
 	}
 
-	private void DoGoToCook(){
+	protected void DoGoToCook(){
 		print("Going to cook");
 		waiterGui.DoGoToCook();
 		try {
@@ -348,9 +344,19 @@ public class WaiterAgent extends Agent implements Waiter{
 		}
 	}
 
-	private void DoFetchPlate(){
+	protected void DoFetchPlate(){
 		print("Fetching the food.");
 		waiterGui.DoFetchDish();
+		try {
+			atTable.acquire();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+
+	protected void DoGoToRevolvingStand(){
+		print("Putting on the revolving stand.");
+		waiterGui.DoGoToRevolvingStand();
 		try {
 			atTable.acquire();
 		} catch (InterruptedException e) {
@@ -378,7 +384,7 @@ public class WaiterAgent extends Agent implements Waiter{
 		return waiterGui;
 	}
 
-	private static class MyCustomer {
+	protected static class MyCustomer {
 		Customer c;
 		int tableNumber, count;
 		String choice = "";
@@ -386,7 +392,7 @@ public class WaiterAgent extends Agent implements Waiter{
 		public enum CustomerState
 		{none, waiting, noMoney, readyToOrder, 
 			orderGiven, orderReady, noFood, finishedEating, checkComputed, leaving};
-			private CustomerState state = CustomerState.none;
+		public CustomerState state = CustomerState.none;
 
 			MyCustomer(Customer c, int tableNumber, CustomerState s, int count) {
 				this.c = c;

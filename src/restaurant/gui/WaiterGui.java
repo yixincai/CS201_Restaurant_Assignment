@@ -1,6 +1,6 @@
 package restaurant.gui;
 
-import restaurant.WaiterAgent;
+import restaurant.WaiterAgent ;
 
 import java.awt.*;
 
@@ -29,7 +29,7 @@ public class WaiterGui extends JPanel implements Gui {
 	private enum Command {noCommand, GoToSeat};
 	private Command command=Command.noCommand;
     
-    public WaiterGui(WaiterAgent agent, RestaurantGui gui, int count) {
+    public WaiterGui(WaiterAgent  agent, RestaurantGui gui, int count) {
         this.agent = agent;
         this.gui = gui;
         this.count = count;
@@ -110,6 +110,12 @@ public class WaiterGui extends JPanel implements Gui {
     
     public void DoFetchDish() {
     	xDestination = xPlate;
+        yDestination = yCook - yGap;
+        command = Command.GoToSeat;
+    }
+    
+    public void DoGoToRevolvingStand() {
+    	xDestination = xPlate - 60;
         yDestination = yCook - yGap;
         command = Command.GoToSeat;
     }
